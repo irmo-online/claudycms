@@ -93,7 +93,7 @@ if (!defined('CMS_ENTRY')) {
     </div>
 <?php elseif ($action === 'edit' || $action === 'new'): ?>
     <div class="page-tabs">
-        <a href="admin.php?action=<?= $action ?><?= ($action === 'edit' && isset($_GET['file'])) ? '&file=' . urlencode($_GET['file']) : '' ?>" class="active"><?= $action === 'new' ? 'Neue Seite' : 'Seite bearbeiten' ?></a>
+        <a href="admin.php?action=<?= $action ?><?= ($action === 'edit' && get_str('file') !== '') ? '&file=' . urlencode(get_str('file')) : '' ?>" class="active"><?= $action === 'new' ? 'Neue Seite' : 'Seite bearbeiten' ?></a>
     </div>
 <?php endif; ?>
 

@@ -417,6 +417,9 @@ function csrf_from(string $html): string {
 function content_file(string $rel): string|false {
     global $tmp_root;
     $path = $tmp_root . '/content/' . $rel;
+    // Der Server legt und löscht Dateien in einem anderen Prozess, der
+    // Stat-Cache dieses Prozesses darf das Ergebnis nicht verfälschen.
+    clearstatcache(true, $path);
     return is_file($path) ? (string) file_get_contents($path) : false;
 }
 

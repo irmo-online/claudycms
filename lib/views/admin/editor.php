@@ -33,8 +33,8 @@ if (!defined('CMS_ENTRY')) {
             $file_name = post_str('file_name');
         }
 
-        if (!$is_new && isset($_GET['file'])) {
-            $filepath_safe = cms_safe_path($_GET['file'], CONTENT_DIR);
+        if (!$is_new && get_str('file') !== '') {
+            $filepath_safe = cms_safe_path(get_str('file'), CONTENT_DIR);
             if ($filepath_safe !== false) {
                 $filepath = $filepath_safe;
                 $data = cms_parse_md_file(CONTENT_DIR . '/' . $filepath, false);
