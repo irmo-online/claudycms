@@ -948,6 +948,14 @@ function cms_validate_landingpage_html(string $html): ?string {
         return 'Inline-Event-Handler (on*-Attribute wie onclick, onerror) sind in Landingpages nicht erlaubt.';
     }
 
+    // Ein nicht geschlossenes <style> verschluckt alles danach. Neuere
+    // libxml-Versionen (ab 2.14, HTML5-Tokenizer) melden das nicht mehr als
+    // Fehler, die Prüfung unten würde es dort durchwinken. Deshalb vorab
+    // unabhängig von libxml: jedes öffnende Tag braucht ein schließendes.
+    if (preg_match_all('/<\s*style\b/i', $html) !== preg_match_all('/<\s*\/\s*style\s*>/i', $html)) {
+        return 'Das HTML ist nicht wohlgeformt (ein <style>-Block ist nicht geschlossen).';
+    }
+
     // Grobe Wohlgeformtheits-Prüfung über DOMDocument::loadHTML() statt eines
     // vollständigen HTML5-Parsers (Spec 6.3: keine neue Abhängigkeit,
     // DOMDocument ist Bordmittel). libxmls interner Parser kennt nur HTML4 —
