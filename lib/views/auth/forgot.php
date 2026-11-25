@@ -1,6 +1,6 @@
 <?php
 /**
- * Formular "Passwort vergessen" (Spec 5.2). Variablen: $message (?array).
+ * Formular "Passwort vergessen". Variablen: $message (?array).
  *
  * $message ist entweder null (erster Aufruf, GET) oder das Ergebnis von
  * handle_forgot_password_request(). Nach einer erfolgreichen Anfrage bleibt

@@ -30,7 +30,7 @@ function editor_meta_from_post(): array {
     // Landingpage beim ersten Speichern hier stillschweigend zurück
     // in eine kaputt gerenderte Markdown-Seite verwandeln (HTML liefe
     // wieder durch markdown_to_html()) — sicherheitsrelevanter Fix,
-    // kein reines Feature-Detail (Spec 6.8).
+    // kein reines Feature-Detail.
     $frontmatter_keys = [
         'title', 'description', 'canonical', 'robots', 'slug', 'navLabel', 'order', 'heading', 'headerImage',
         'contentType', 'pageStyle', 'ogTitle', 'ogDescription', 'ogImage',
@@ -109,7 +109,7 @@ function handle_save_file(): HandlerResult {
         $meta['draft'] = 'true';
     }
 
-    // Menschliche Bearbeitung kennzeichnen (Spec 5.6) — dieselbe
+    // Menschliche Bearbeitung kennzeichnen — dieselbe
     // Funktion, die mcp.php für "lastEditedBy: ai" nutzt, hier mit der
     // E-Mail des speichernden Nutzers statt "ai".
     $me = current_user();
@@ -169,7 +169,7 @@ function handle_delete_file(): HandlerResult {
 
 // Entwurf veröffentlichen
 //
-// Gegenstück zur Entwurfsregel der KI-Anbindung (Feature-PRD 6.2): Solange
+// Gegenstück zur Entwurfsregel der KI-Anbindung: Solange
 // ai_publish_immediately nicht true ist, legt jeder Schreibzugriff über
 // mcp.php die Seite als draft: true ab — sie ist dann öffentlich nicht
 // erreichbar. Hier wird das Flag entfernt und die Seite geht live.

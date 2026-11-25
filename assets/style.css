@@ -164,7 +164,7 @@ body {
     width: auto;
 }
 
-/* Positions-Dropdown (Spec 5.1/5.3: links/mittig/rechts) — .site-header bleibt
+/* Positions-Dropdown — .site-header bleibt
    ein einfacher Flex-Container mit zwei sichtbaren Kindern (Branding, Nav) auf
    dem Desktop, deshalb genügen order/margin:auto statt eines Grid-Umbaus.
    "mittig" zentriert die Branding über die verbleibende Restfläche zwischen

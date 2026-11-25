@@ -1,4 +1,4 @@
-# ─── PHP-Ausführung verbieten (Tiefenstaffelung, L12) ───────────────────────
+# ─── PHP-Ausführung verbieten (Tiefenstaffelung) ───────────────────────
 # Hochgeladene Bilder werden vor dem Speichern validiert (lib/media.php,
 # cms_validate_image_upload() prueft den echten Bildinhalt, nicht nur die
 # Endung) — eine PHP-Datei sollte diesen Ordner also nie erreichen. Diese

@@ -20,7 +20,7 @@ if (!defined('CMS_ENTRY')) {
  *
  * Schlägt der Versand fehl (SMTP nicht konfiguriert/nicht erreichbar), gibt
  * die Funktion false zurück, statt einen Fatal Error zu werfen — der Aufrufer
- * entscheidet dann fail-closed weiter (Spec 5.4).
+ * entscheidet dann fail-closed weiter.
  */
 function send_user_email(array $cfg, string $to_email, string $subject, string $body): bool {
     if (empty($cfg['smtp_host']) || empty($cfg['smtp_user']) || empty($cfg['smtp_pass']) || empty($cfg['smtp_from_email'])) {
@@ -76,7 +76,7 @@ function site_url_trustworthy_for_mail(): bool {
 
 /**
  * Verschickt (oder verschickt erneut) die Einladungs-Mail für einen
- * bestehenden Nutzer (Spec 5.4). Text unterscheidet sich leicht vom
+ * bestehenden Nutzer. Text unterscheidet sich leicht vom
  * "Passwort vergessen"-Flow in handle_forgot_password_request() ("Zugang
  * eingerichtet, lege dein Passwort fest" statt "Zurücksetzen angefordert"),
  * nutzt aber denselben Token- und Link-Mechanismus (create_user_token()).
@@ -107,10 +107,9 @@ function send_invite_mail(array $user): bool {
 }
 
 /**
- * Legt einen neuen Nutzer an und verschickt die Einladungs-Mail (Spec 5.2/5.4).
+ * Legt einen neuen Nutzer an und verschickt die Einladungs-Mail.
  *
- * Scheitert der Mailversand, bleibt der Account trotzdem bestehen (Spec 8
- * Punkt 2, v0.3) — anders als beim ursprünglichen
+ * Scheitert der Mailversand, bleibt der Account trotzdem bestehen — anders als beim ursprünglichen
  * Passwort-Reset ist das hier kein Sicherheitsrisiko: ohne Passwort ist der
  * Account ohnehin nicht nutzbar. Der Tab "Benutzer" bietet für genau diesen
  * Fall "Einladung erneut senden".

@@ -58,8 +58,7 @@ if (!defined('CMS_ENTRY')) {
         <?= csrf_field() ?>
         <?php if (!$is_new): ?>
             <input type="hidden" name="filepath" value="<?= e($filepath) ?>">
-            <!-- contentType ist nach dem Anlegen fest (Spec 4.5: Typ-Auswahl
-                 nur beim Neuanlegen) — ohne dieses Feld würde der
+            <!-- contentType ist nach dem Anlegen fest — ohne dieses Feld würde der
                  Whitelist-Fix (frontmatter_keys) beim Speichern ins Leere
                  laufen, weil kein POST-Feld den bestehenden Wert trägt. -->
             <input type="hidden" name="meta_contentType" value="<?= e($meta['contentType']) ?>">
@@ -84,13 +83,13 @@ if (!defined('CMS_ENTRY')) {
                 </div>
             </div>
             <textarea name="body" id="markdown-editor" class="editor-textarea" placeholder="Schreibe hier deinen Inhalt in Markdown..."><?= e($body) ?></textarea>
-            <!-- pageStyle (Spec 4.5): eigenes CSS, wirkt nur auf dieser
+            <!-- pageStyle: eigenes CSS, wirkt nur auf dieser
                  einen Seite. Nur für Landingpages relevant, JS blendet den Tab bei
                  Markdown-Seiten aus — das Feld bleibt aber immer im Formular, damit
                  ein einmal gesetzter Wert beim Speichern nicht verloren geht. -->
             <textarea name="meta_pageStyle" id="pagestyle-editor" class="editor-textarea is-hidden" placeholder="Eigenes CSS für diese Seite (optional), z. B.&#10;.hero { background: #eee; padding: 4rem; }"><?= e($meta['pageStyle']) ?></textarea>
             <div id="markdown-preview" class="markdown-preview"></div>
-            <!-- Landingpage-Vorschau (Spec 4.5/6.8): sandbox ohne allow-scripts —
+            <!-- Landingpage-Vorschau: sandbox ohne allow-scripts —
                  isoliert HTML + pageStyle von der Admin-Oberfläche und ist ein
                  zusätzliches, von der serverseitigen Validierung unabhängiges
                  Sicherheitsnetz. Den Inhalt lädt das Formular
@@ -295,7 +294,7 @@ if (!defined('CMS_ENTRY')) {
             return form.dataset.contentType === 'html';
         }
 
-        // Blendet Tabs/Platzhalter passend zum Seitentyp um (Spec 4.5) —
+        // Blendet Tabs/Platzhalter passend zum Seitentyp um —
         // Markdown-Seiten: Markdown/Vorschau wie bisher. Landingpages:
         // HTML/CSS/Vorschau, dritter Tab für das seiteneigene pageStyle-CSS.
         function applyContentType() {
@@ -341,7 +340,7 @@ if (!defined('CMS_ENTRY')) {
             cssEditor.style.display = 'none';
             setActive(btnPreview);
             if (isLandingpage()) {
-                // sandbox ohne allow-scripts (Spec 6.8): isoliert HTML +
+                // sandbox ohne allow-scripts: isoliert HTML +
                 // pageStyle von der Admin-Oberfläche, unabhängig von der
                 // serverseitigen Basis-Validierung (6.3). Kein srcdoc: das
                 // erbte die Admin-CSP, die keine Inline-Styles erlaubt.
@@ -361,7 +360,7 @@ if (!defined('CMS_ENTRY')) {
         btnCss.addEventListener('click', showCss);
         btnPreview.addEventListener('click', showPreview);
 
-        // Nur beim Neuanlegen vorhanden (Spec 4.5: Typ-Auswahl nur dort) —
+        // Nur beim Neuanlegen vorhanden —
         // bei bestehenden Seiten ist data-content-type serverseitig fest gesetzt.
         typeRadios.forEach(function(radio) {
             radio.addEventListener('change', function() {

@@ -11,8 +11,8 @@
  *   - cms_create_user() / cms_delete_user() / cms_set_user_status() /
  *     cms_set_user_password() / cms_update_user_email() /
  *     cms_regenerate_user_mcp_token() / cms_record_user_login()  Schreiben
- *   - cms_migrate_users()                     Einmalige Migration (Spec 4.2)
- *   - cms_create_initial_admin()              Erstinstallation (Spec 5.4)
+ *   - cms_migrate_users()                     Einmalige Migration
+ *   - cms_create_initial_admin()              Erstinstallation
  *
  * Spec sieht die Rollen-Rechte-Tabelle in einem eigenen lib/auth.php vor
  * (Abschnitt 4.1) — hier bewusst zusammen mit dem Datenmodell in einer Datei,
@@ -79,7 +79,7 @@ function cms_users_file(): string {
 // und genau diese Differenz ist auf Zeitebene messbar. Gemessen auf PHP 8.5:
 // password_verify() gegen einen Cost-10-Hash 62 ms, gegen Cost 12 253 ms. Wer
 // den Unterschied misst, weiß, ob eine E-Mail-Adresse existiert, obwohl die
-// Fehlermeldung identisch bleibt (Spec 6.4, Enumeration-Schutz).
+// Fehlermeldung identisch bleibt.
 //
 // Erhöhen ist unkritisch: password_verify() liest den Kostenfaktor aus dem
 // jeweils gespeicherten Hash, bestehende Passwörter funktionieren also
@@ -280,8 +280,7 @@ function cms_find_user_by_id(string $id): ?array {
 }
 
 /**
- * Nutzer-Lookup über den persönlichen MCP-Connector-Token (Spec 4:
- * mcp.php löst den Token aus der URL gegen users.json auf). hash_equals pro
+ * Nutzer-Lookup über den persönlichen MCP-Connector-Token. hash_equals pro
  * Kandidat, analog dem bisherigen einzelnen ai_connector_token-Vergleich.
  */
 function cms_find_user_by_mcp_token(string $token): ?array {
@@ -297,7 +296,7 @@ function cms_find_user_by_mcp_token(string $token): ?array {
     return null;
 }
 
-/** Anzahl Accounts mit role=admin, unabhängig vom Status (Spec 5.2/6.5: "der letzte Account mit role=admin", nicht nur die aktiven). */
+/** Anzahl Accounts mit role=admin, unabhängig vom Status. */
 function cms_count_admins(): int {
     return count(array_filter(cms_load_users(), static fn(array $u): bool => ($u['role'] ?? '') === Role::Admin->value));
 }
@@ -319,7 +318,7 @@ function cms_generate_user_token(): array {
 // ─── Schreiben ──────────────────────────────────────────────────────────────
 
 /**
- * Legt einen neuen Nutzer an (Spec 5.2): nur E-Mail + Rolle, kein Passwort —
+ * Legt einen neuen Nutzer an: nur E-Mail + Rolle, kein Passwort —
  * das setzt der Nutzer selbst über die Einladungs-Mail. Der MCP-Token
  * wird sofort erzeugt, damit der Tab
  * "Benutzer" den Connector-Link direkt zeigen kann, statt einen Nutzer ohne
@@ -373,11 +372,11 @@ function cms_create_user(string $email, string $role): array {
 
 /**
  * Sperrt/entsperrt einen Nutzer. Weigert sich, den letzten verbleibenden
- * Admin-Account zu sperren (Spec 5.2/6.5) — die Prüfung läuft *innerhalb*
+ * Admin-Account zu sperren — die Prüfung läuft *innerhalb*
  * desselben Locks wie das Schreiben, damit zwei gleichzeitige Sperr-Versuche
  * auf zwei verschiedene Admin-Accounts sich nicht gegenseitig aushebeln
  * können. Verteidigung auch auf dieser Ebene, nicht nur über die im Tab
- * "Benutzer" deaktivierten Buttons (Spec 6.2).
+ * "Benutzer" deaktivierten Buttons.
  */
 function cms_set_user_status(string $id, string $status): array {
     $new_status = UserStatus::tryFrom($status);
@@ -458,7 +457,7 @@ function cms_delete_user(string $id): array {
 }
 
 /**
- * Ändert die E-Mail-Adresse eines Nutzers (Spec 5.3). CSRF- und
+ * Ändert die E-Mail-Adresse eines Nutzers. CSRF- und
  * Passwort-Bestätigung sind Sache des Aufrufers in admin.php — hier wird nur
  * Format und Eindeutigkeit geprüft, innerhalb desselben Locks wie das
  * Schreiben (sonst könnten zwei gleichzeitige Änderungen auf dieselbe neue
@@ -556,7 +555,7 @@ function cms_record_user_login(string $id): bool {
 // ─── Migration ──────────────────────────────────────────────────────────────
 
 /**
- * Einmalige Migration (Spec 4.2): Legt config/users.json aus dem bisherigen
+ * Einmalige Migration: Legt config/users.json aus dem bisherigen
  * Single-Admin-Modell an, falls sie noch nicht existiert. Idempotent — ein
  * zweiter Aufruf tut nichts, sobald die Datei einmal Nutzer enthält.
  *
@@ -623,7 +622,7 @@ function cms_migrate_users(array $cfg): bool {
 
 /**
  * Legt den allerersten Admin-Account für eine per install.php eingerichtete
- * Instanz an (Spec 5.4). Analog cms_create_user() (Zeile ~236), aber mit
+ * Instanz an. Analog cms_create_user() (Zeile ~236), aber mit
  * direkt gesetztem Passwort statt password_hash: null + Einladungs-Mail-Fluss
  * — für den allerersten Admin gibt es noch kein SMTP, keine bestehende
  * Instanz, die eine Mail verschicken könnte. Deshalb ein eigener, expliziter
@@ -675,7 +674,7 @@ function cms_create_initial_admin(string $email, string $password): array {
         'password_hash'  => cms_hash_password($password),
         'role'           => Role::Admin->value,
         'status'         => UserStatus::Aktiv->value,
-        // Leer, nicht sofort erzeugt (Spec 5.4) — wie bei jedem neuen Nutzer
+        // Leer, nicht sofort erzeugt — wie bei jedem neuen Nutzer
         // ohne Connector entsteht der MCP-Token erst über den Tab
         // "KI-Anbindung" nach dem ersten Login.
         'mcp_token_hash' => null,

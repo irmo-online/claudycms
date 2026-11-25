@@ -3,11 +3,10 @@
  * Angeleitete Installationsroutine.
  *
  * Eigenständiger Einstiegspunkt, analog zu index.php/admin.php/api.php/
- * mcp.php — nicht in admin.php integriert (Spec Abschnitt 3.1, Entscheidung
- * in Abschnitt 0). Läuft VOR jeder Konfiguration: beim ersten Aufruf gibt es
+ * mcp.php — nicht in admin.php integriert. Läuft VOR jeder Konfiguration: beim ersten Aufruf gibt es
  * noch kein config/config.php, das andere Einstiegspunkte hart voraussetzen.
  *
- * Ablauf (Spec Abschnitt 4):
+ * Ablauf:
  *   1. Self-Lock          — existiert config/config.php bereits? (5.1)
  *   2. Voraussetzungsprüfung — PHP-Version, Schreibrechte (5.5)
  *   3. Formular-Anzeige/-Verarbeitung — GET zeigt das Formular, POST
@@ -29,12 +28,12 @@ define('CMS_ENTRY', true);
 
 require_once __DIR__ . '/lib/security.php';
 
-// Keine PHP-Stacktraces oder Pfade vor der Installation preisgeben (Spec 6.2).
+// Keine PHP-Stacktraces oder Pfade vor der Installation preisgeben.
 ini_set('display_errors', '0');
 error_reporting(E_ALL);
 
 // Session mit HttpOnly/Secure/SameSite=Lax — für das CSRF-Token, obwohl noch
-// kein Login existiert (Spec 6.3).
+// kein Login existiert.
 cms_start_session();
 
 define('CONFIG_FILE', __DIR__ . '/config/config.php');
@@ -45,7 +44,7 @@ require_once __DIR__ . '/lib/config.php';
 // Rollen- und Status-Enums — lib/users.php nutzt sie beim Anlegen des Admins.
 require_once __DIR__ . '/lib/enums.php';
 
-// cms_create_initial_admin() (Spec 5.4) — legt den ersten Admin-Account in
+// cms_create_initial_admin() — legt den ersten Admin-Account in
 // config/users.json an, direkt im Anschluss an config/config.php.
 require_once __DIR__ . '/lib/users.php';
 
@@ -78,25 +77,24 @@ function verify_csrf(): bool {
     return isset($_POST['csrf_token']) && hash_equals(csrf_token(), $_POST['csrf_token']);
 }
 
-// ─── 1. Self-Lock (Spec 5.1) ────────────────────────────────────────────────
+// ─── 1. Self-Lock ────────────────────────────────────────────────
 // Erste Zeile der eigentlichen Logik, keine Ausnahme, kein Admin-Override —
-// wer neu installieren will, löscht config/config.php per FTP selbst (Spec
-// 3.2). Kein unlink(__FILE__): auf manchem Shared-Hosting unzuverlässig
+// wer neu installieren will, löscht config/config.php per FTP selbst. Kein unlink(__FILE__): auf manchem Shared-Hosting unzuverlässig
 // (Dateirechte) und würde einen stillen Fehlschlag riskieren, der wie ein
-// Erfolg aussieht (Spec 5.1).
+// Erfolg aussieht.
 if (is_file(CONFIG_FILE)) {
     render_already_installed();
     exit;
 }
 
-// ─── 2. Voraussetzungsprüfung (Spec 5.5) ───────────────────────────────────
+// ─── 2. Voraussetzungsprüfung ───────────────────────────────────
 $requirement_errors = check_requirements();
 if ($requirement_errors) {
     render_requirements_error($requirement_errors);
     exit;
 }
 
-// ─── 3. Formular-Anzeige & -Verarbeitung (Spec 5.2, 5.3, 6.4) ──────────────
+// ─── 3. Formular-Anzeige & -Verarbeitung ──────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     handle_install_submit();
 } else {
@@ -107,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /**
  * Prüft PHP-Version und Schreibrechte auf die drei Verzeichnisse, die das
- * CMS zur Laufzeit ohnehin beschreibt (Spec 5.5). Leeres Array = alles okay.
+ * CMS zur Laufzeit ohnehin beschreibt. Leeres Array = alles okay.
  *
  * @return string[] Verständliche Fehlermeldungen, eine pro Problem.
  */
@@ -132,7 +130,7 @@ function check_requirements(): array {
     return $errors;
 }
 
-/** Hinweisseite, wenn config/config.php bereits existiert (Spec 5.1). */
+/** Hinweisseite, wenn config/config.php bereits existiert. */
 function render_already_installed(): void {
 ?>
 <!DOCTYPE html>
@@ -157,7 +155,7 @@ function render_already_installed(): void {
 }
 
 /**
- * Fehlerseite der Voraussetzungsprüfung (Spec 5.5, 6.2). Zeigt jeden
+ * Fehlerseite der Voraussetzungsprüfung. Zeigt jeden
  * gefundenen Punkt einzeln, kein Formular, keine PHP-Interna.
  *
  * @param string[] $errors
@@ -190,8 +188,8 @@ function render_requirements_error(array $errors): void {
 }
 
 /**
- * Minimal-Formular: Site-Titel, Domain (optional), Admin-E-Mail, Passwort ×2
- * (Spec 5.2). Bei einem Validierungsfehler (Aufruf aus
+ * Minimal-Formular: Site-Titel, Domain (optional), Admin-E-Mail, Passwort ×2.
+ * Bei einem Validierungsfehler (Aufruf aus
  * handle_install_submit()) wird die Fehlermeldung gezeigt und die bereits
  * eingegebenen, unkritischen Felder bleiben ausgefüllt — Passwörter werden
  * nie zurückgeschrieben (gleiche Zurückhaltung wie bei anderen
@@ -240,7 +238,7 @@ function render_install_form(string $error = '', array $old = []): void {
 }
 
 /**
- * Verarbeitet den POST des Installationsformulars (Spec 5.2–5.3, 6.4).
+ * Verarbeitet den POST des Installationsformulars.
  * Validiert der Reihe nach (ein Fehler = sofortiger Abbruch mit erneuter
  * Formularanzeige, gleiches Muster wie $settings_error in admin.php), baut
  * bei Erfolg die Konfiguration aus config.example.php und schreibt sie über
@@ -268,7 +266,7 @@ function handle_install_submit(): void {
         $error = 'Ungültige E-Mail-Adresse.';
     } elseif (strlen($password) < 12) {
         // Gleicher Text wie das bestehende Passwort-ändern-Formular in
-        // admin.php (Spec 5.2).
+        // admin.php.
         $error = 'Das Admin-Passwort muss mindestens 12 Zeichen lang sein.';
     } elseif ($password !== $password2) {
         $error = 'Passwort und Bestätigung stimmen nicht überein.';
@@ -279,19 +277,19 @@ function handle_install_submit(): void {
         return;
     }
 
-    // Basis config.example.php (Spec 5.3): alle übrigen Felder bleiben bei
+    // Basis config.example.php: alle übrigen Felder bleiben bei
     // ihren Beispiel-Defaults, nur site_title/site_domain werden überschrieben.
     // admin_password_hash bleibt bewusst der Platzhalter aus der Vorlage —
     // das echte Passwort landet ausschließlich gehasht in
     // config/users.json (cms_create_initial_admin() unten), nicht doppelt
-    // auch hier (Spec 5.3/5.4).
+    // auch hier.
     $config = require __DIR__ . '/config/config.example.php';
     $config['site_title']  = $old['site_title'];
     $config['site_domain'] = $old['site_domain'];
 
     switch (cms_install_write_config($config)) {
         case 'collision':
-            // Ein paralleler zweiter Request war schneller (Spec 6.4) — für
+            // Ein paralleler zweiter Request war schneller — für
             // diesen Request ist die Lage identisch zum Self-Lock oben.
             render_already_installed();
             break;
@@ -301,8 +299,8 @@ function handle_install_submit(): void {
             break;
         default: // 'ok'
             // config/config.php steht bereits — der Self-Lock oben greift ab
-            // jetzt für jeden weiteren Aufruf, unabhängig vom Ausgang hier
-            // (Spec 5.1 kennt keine Ausnahme). Admin-Anlage deshalb im
+            // jetzt für jeden weiteren Aufruf, unabhängig vom Ausgang hier.
+            // Admin-Anlage deshalb im
             // selben Durchgang, nicht als separater, wiederholbarer Schritt.
             $admin = cms_create_initial_admin($old['admin_email'], $password);
             if (!empty($admin['ok'])) {
@@ -314,16 +312,13 @@ function handle_install_submit(): void {
 }
 
 /**
- * Spec-gerechter Abschluss-Screen (Spec 5.6): config/config.php UND
+ * Spec-gerechter Abschluss-Screen: config/config.php UND
  * config/users.json stehen, Login funktioniert bereits. Ersetzt den bisher
  * gezeigten einfachen Zwischenstand (render_config_saved_placeholder()).
  *
  * Der Lösch-Hinweis ist bewusst auffällig gestaltet (eigene .msg.warning-
  * Klasse, nicht die schlichte .msg.success von oben) und erklärt kurz die
- * Sicherheitsrelevanz (Spec 3.1, 6.1: ohne Löschen bliebe install.php
- * dauerhaft erreichbar und könnte trotz Self-Lock — der ist Pflicht, siehe
- * 6.1, aber kein Ersatz für das Aufräumen — als offener Endpunkt bestehen
- * bleiben), nicht nur eine Zeile.
+ * Sicherheitsrelevanz, nicht nur eine Zeile.
  */
 function render_install_complete(): void {
 ?>
@@ -355,8 +350,7 @@ function render_install_complete(): void {
  * Fehlerseite, falls config/config.php zwar geschrieben wurde, aber
  * cms_create_initial_admin() danach scheitert (z. B. ein Locking-Fehler auf
  * config/users.json) — seltener Rand, in der Spec nicht einzeln behandelt.
- * Der Self-Lock aus Schritt 1 greift ab jetzt unwiderruflich (Spec 5.1 kennt
- * keine Ausnahme), ein erneuter install.php-Aufruf würde nur „Bereits
+ * Der Self-Lock aus Schritt 1 greift ab jetzt unwiderruflich, ein erneuter install.php-Aufruf würde nur „Bereits
  * installiert" zeigen. Einziger Ausweg ist der in der Spec ohnehin
  * vorgesehene Reset-Weg: config/config.php per FTP löschen und neu starten.
  */

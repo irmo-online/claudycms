@@ -16,14 +16,13 @@
  * absichtlich und schnell fehl (Connection refused statt PHPMailer-Timeout).
  * Ein echter Mailversand lässt sich ohne Postfach im Test ohnehin nicht
  * prüfen, gleiche Grenze wie beim Kontaktformular in index.php. Genau dieser
- * Fehlschlag deckt aber den Fail-Closed-Pfad ab (Spec 5.4: kein Token bleibt
- * ohne verschickten Link stehen) und beweist nebenbei, dass eine scheiternde
+ * Fehlschlag deckt aber den Fail-Closed-Pfad ab und beweist nebenbei, dass eine scheiternde
  * Bestätigungsmail den bereits erfolgreichen Reset nicht rückgängig macht.
  * Für den erfolgreichen Reset-Schritt selbst wird der Token direkt in
  * config/reset/<user_id>.json geschrieben (write_user_token()) statt über die
  * Anfrage-Route erzeugt — sonst käme man wegen des Fail-Closed-Verhaltens nie
  * an einen gültigen Token. Seit Einführung der Benutzerverwaltung pro
- * Nutzer statt einer einzelnen globalen Datei (Spec 5.4) — bedient
+ * Nutzer statt einer einzelnen globalen Datei — bedient
  * denselben Mechanismus auch für
  * Einladungen an neue Nutzer (Tab "Benutzer").
  *
@@ -453,7 +452,7 @@ function user_password_hash(string $tmp_root, string $email): string {
 }
 
 /**
- * Pfad der Einladungs-/Reset-Token-Datei eines Nutzers (Spec 5.4)
+ * Pfad der Einladungs-/Reset-Token-Datei eines Nutzers
  * — gleiches Verzeichnis wie RESET_TOKEN_FILE, aber pro Nutzer-id statt der
  * einen globalen token.json.
  */
@@ -476,7 +475,7 @@ function write_user_token(string $tmp_root, string $user_id, int $expires_in = 3
 }
 
 /**
- * Pfad der Konto-Lockout-Zählerdatei einer E-Mail (Spec 6.3) —
+ * Pfad der Konto-Lockout-Zählerdatei einer E-Mail —
  * gleiche Hash-Logik wie cms_rate_limit_file() in lib/security.php, mit der
  * account_rate_limit_file() in admin.php denselben Dateinamen bildet.
  */
@@ -582,7 +581,7 @@ is_same($r['status'], 302, 'richtige E-Mail + richtiges Passwort loggt ein (Redi
 $list = request('GET', '/admin.php')['body'];
 ok(str_contains($list, 'Seiten (2)'), 'das Listing zeigt danach 2 Seiten');
 
-// ── Konto-Lockout (Spec 6.3) ──
+// ── Konto-Lockout ──
 
 group('Konto-Lockout');
 
@@ -621,7 +620,7 @@ $list = request('GET', '/admin.php')['body']; // für die folgenden Gruppen neu 
 
 // ── Listing: Entwurfs- und KI-Kennzeichnung ──
 
-group('Seiten-Listing (Feature-PRD 5.2/6.2)');
+group('Seiten-Listing');
 
 is_same(substr_count($list, 'badge badge-draft'), 1, 'Entwurf-Badge steht nur bei der Entwurfsseite');
 is_same(substr_count($list, 'badge badge-ai'), 1, 'KI-Badge steht nur bei der von der KI geänderten Seite');
@@ -635,9 +634,9 @@ ok(
     'der KI-Zeitstempel erscheint in seiner eigenen Zeitzone (22:21, nicht umgerechnet)'
 );
 
-// ── Speichern im Backend: lastEditedBy für Menschen (Spec 5.6) ──
+// ── Speichern im Backend: lastEditedBy für Menschen ──
 
-group('Seite speichern: lastEditedBy für Menschen (Spec 5.6)');
+group('Seite speichern: lastEditedBy für Menschen');
 
 $save_csrf = csrf_from($list);
 $r = request('POST', '/admin.php', [
@@ -658,7 +657,7 @@ ok(str_contains($home_file, 'lastEditedBy: "admin@example.test"'), 'lastEditedBy
 ok(str_contains($home_file, 'lastEditedAt:'), 'lastEditedAt wird mitgeschrieben, wie bei der bestehenden KI-Kennzeichnung');
 
 $list_after_save = request('GET', '/admin.php')['body'];
-is_same(substr_count($list_after_save, 'badge badge-ai'), 2, 'zwei Badges jetzt: KI-Seite und die von einem Menschen geänderte Seite teilen sich dieselbe Badge-Klasse (Spec 5.6: "bestehende Komponente wiederverwenden")');
+is_same(substr_count($list_after_save, 'badge badge-ai'), 2, 'zwei Badges jetzt: KI-Seite und die von einem Menschen geänderte Seite teilen sich dieselbe Badge-Klasse');
 ok(str_contains($list_after_save, 'von admin@example.test'), 'Badge zeigt "von <E-Mail>" statt "von KI"');
 $list = $list_after_save; // für die folgenden Gruppen weiterreichen
 
@@ -720,7 +719,7 @@ ok(str_contains($r['body'], 'bereits ein Entwurf'), 'ein zweites Zurückziehen w
 
 // ── Tab "KI-Anbindung" ──
 
-group('Tab "KI-Anbindung" (Feature-PRD 6.5, Connector-Token personengebunden)');
+group('Tab "KI-Anbindung"');
 
 $ai = request('GET', '/admin.php?action=ai')['body'];
 // Der globale Connector-Token (ein Token für die ganze Installation) ist mit
@@ -806,7 +805,7 @@ ok(str_contains($settings_page, 'Logo &amp; Favicon'), 'neue Sektion "Logo & Fav
 ok(str_contains($settings_page, 'Noch kein Logo hochgeladen'), 'Hinweistext statt Vorschau, solange kein Logo existiert');
 ok(str_contains($settings_page, 'Noch kein Favicon hochgeladen'), 'Hinweistext statt Vorschau, solange kein Favicon existiert');
 ok(!str_contains($settings_page, 'name="delete_logo"'), 'kein Löschen-Button ohne Logo');
-ok(!str_contains($settings_page, 'name="site_logo_position"'), 'Positions-/Anzeige-Dropdown erscheinen erst nach dem ersten Upload (Spec 5.1)');
+ok(!str_contains($settings_page, 'name="site_logo_position"'), 'Positions-/Anzeige-Dropdown erscheinen erst nach dem ersten Upload');
 ok(str_contains($settings_page, 'Empfohlene Größe: zwischen 100×100 und 300×300 px.'), 'Größenhinweis fürs Logo steht im Upload-Feld');
 ok(str_contains($settings_page, 'Empfohlene Größe: 48×48 px.'), 'Größenhinweis fürs Favicon steht im Upload-Feld');
 $branding_csrf = csrf_from($settings_page);
@@ -827,8 +826,8 @@ ok(!is_file($tmp_root . '/assets/images/logo.png'), 'Datei landet nicht in asset
 ok(str_contains((string) file_get_contents($tmp_root . '/config/config.php'), "'site_logo' => 'logo.png'"), 'config.php trägt site_logo ein');
 ok(str_contains($r['body'], 'name="delete_logo"'), 'Löschen-Button erscheint jetzt');
 ok(str_contains($r['body'], 'name="site_logo_position"'), 'Positions-Dropdown erscheint jetzt');
-ok((bool) preg_match('/value="links"\s+selected/', $r['body']), 'Default-Position "links" vorausgewählt (Spec 5.1)');
-ok((bool) preg_match('/value="logo_only"\s+selected/', $r['body']), 'Default-Anzeige "Nur Logo" direkt nach dem ersten Upload vorausgewählt (Spec 5.1)');
+ok((bool) preg_match('/value="links"\s+selected/', $r['body']), 'Default-Position "links" vorausgewählt');
+ok((bool) preg_match('/value="logo_only"\s+selected/', $r['body']), 'Default-Anzeige "Nur Logo" direkt nach dem ersten Upload vorausgewählt');
 $branding_csrf = csrf_from($r['body']);
 
 group('Frontend: Logo vorhanden, Modus "Nur Logo", Position "links" (Default)');
@@ -987,7 +986,7 @@ foreach (['ssl' => 'ssl', '' => '', 'tls' => 'tls', 'quatsch' => 'tls'] as $sent
 }
 put($tmp_root . '/config/config.php', $config_before_smtp);
 
-// ── Tab "Benutzer" (Spec 5.2) ──
+// ── Tab "Benutzer" ──
 
 group('Tab "Benutzer": Aussperr-Schutz');
 
@@ -1101,7 +1100,7 @@ $forbidden_post = request('POST', '/admin.php', [
     'invite_role'  => 'content_creator',
     'invite_user'  => '1',
 ]);
-is_same($forbidden_post['status'], 403, 'auch der POST-Handler selbst weist einen Content Creator ab (Spec 6.2), nicht nur die Anzeige');
+is_same($forbidden_post['status'], 403, 'auch der POST-Handler selbst weist einen Content Creator ab, nicht nur die Anzeige');
 ok(find_test_user($tmp_root, 'zweite-person@example.test') === null, 'kein Nutzer über den abgewiesenen Versuch angelegt');
 
 $creator_session_cookie = $cookie; // aktive Session merken — Spec 5.2/6.7: eine Sperrung soll sie beim nächsten Request noch treffen
@@ -1115,7 +1114,7 @@ ok(str_contains($redirects_page, 'Redirect anlegen'), 'Admin sieht den Tab "Redi
 ok(str_contains($redirects_page, 'Noch keine Redirects angelegt'), 'Liste ist anfangs leer');
 $redirects_csrf = csrf_from($redirects_page);
 
-// Content Creator: weder Tab in der Nav noch Zugriff (Spec 6.2, analog "Benutzer").
+// Content Creator: weder Tab in der Nav noch Zugriff.
 // Nutzt die noch aktive Session von oben — der Content Creator wird erst im
 // nächsten Testblock gesperrt.
 $cookie = $creator_session_cookie;
@@ -1593,7 +1592,7 @@ ok(preg_match('#/mcp\.php/([0-9a-f]{64})#', $r['body']) === 1, 'Antwort enthält
 $new_admin_hash = find_test_user($tmp_root, 'admin@example.test')['mcp_token_hash'];
 ok($new_admin_hash !== $old_admin_hash, 'mcp_token_hash hat sich wirklich geändert');
 
-group('"Mein Profil": reduzierte Einstellungen-Ansicht für Content Creator (Spec 5.3)');
+group('"Mein Profil": reduzierte Einstellungen-Ansicht für Content Creator');
 
 request('POST', '/admin.php', [
     'csrf_token'   => $users_csrf,
@@ -1632,7 +1631,7 @@ ok(!str_contains($profile_page, 'smtp_host'), 'SMTP-Felder tauchen auf "Mein Pro
 ok(!str_contains($profile_page, 'Logo &amp; Favicon'), 'die Sektion "Logo & Favicon" taucht auf "Mein Profil" ebenfalls gar nicht erst auf');
 $profile_csrf = csrf_from($profile_page);
 
-// Direktaufruf admin-only Routen durch den Content Creator -> 403 (Spec 6.2),
+// Direktaufruf admin-only Routen durch den Content Creator -> 403,
 // nicht nur die ausgeblendete Navigation.
 is_same(request('GET', '/admin.php?action=ai')['status'], 403, 'Direktaufruf von action=ai durch Content Creator liefert 403');
 
@@ -1679,7 +1678,7 @@ $r = request('POST', '/admin.php', [
 ]);
 is_same($r['status'], 403, 'save_branding_settings per rohem POST wird abgewiesen');
 
-// E-Mail ändern: verlangt das aktuelle Passwort zur Bestätigung (Spec 5.3)
+// E-Mail ändern: verlangt das aktuelle Passwort zur Bestätigung
 $r = request('POST', '/admin.php', [
     'csrf_token'        => $profile_csrf,
     'profile_email'     => 'neue-adresse@example.test',
@@ -1748,7 +1747,7 @@ ok(preg_match('#/mcp\.php/([0-9a-f]{64})#', $r['body']) === 1, 'Antwort enthält
 $new_profile_user = find_test_user($tmp_root, 'neue-adresse@example.test');
 ok($new_profile_user['mcp_token_hash'] !== $old_profile_hash, 'mcp_token_hash des Content Creators hat sich wirklich geändert');
 
-// Seite speichern als Content Creator (Spec 5.6): eigene E-Mail statt die
+// Seite speichern als Content Creator: eigene E-Mail statt die
 // des Admins, und überhaupt möglich — Entscheidung 6 kennt kein
 // Ownership-Modell, alle Nutzer bearbeiten alle Seiten.
 $cc_list = request('GET', '/admin.php')['body'];
@@ -1819,7 +1818,7 @@ $cookie = $profile_admin_cookie; // zurück zur Admin-Session für die restliche
 
 group('Landingpage speichern: Whitelist-Fix in $frontmatter_keys');
 // Ohne den Fix würden contentType/pageStyle bei jedem Backend-Speichern
-// stillschweigend verloren gehen (Spec 6.8) — das Admin-Formular schickt beide
+// stillschweigend verloren gehen — das Admin-Formular schickt beide
 // als eigene POST-Felder, $frontmatter_keys muss sie kennen.
 
 $lp_list = request('GET', '/admin.php')['body'];
@@ -1864,7 +1863,7 @@ $lp_file = (string) content_file('admin-kampagne.md');
 ok(str_contains($lp_file, 'contentType: html'), 'contentType bleibt nach erneutem Speichern erhalten (Whitelist-Fix)');
 ok(str_contains($lp_file, 'pageStyle:'), 'pageStyle bleibt nach erneutem Speichern erhalten (Whitelist-Fix)');
 
-// Badge in der Seitenliste (Spec 4.5).
+// Badge in der Seitenliste.
 $list_after_lp = request('GET', '/admin.php')['body'];
 ok(str_contains($list_after_lp, 'badge-landingpage'), 'die Landingpage trägt das Landingpage-Badge in der Liste');
 
@@ -2583,7 +2582,7 @@ $r = request('POST', '/admin.php', [
 ok(str_contains($r['body'], 'admin_password'), 'ohne Session kommt statt der Aktion das Login-Formular');
 is_same(content_file('home.md'), $before, 'ohne Session bleibt home.md unverändert');
 
-// ── Passwort vergessen: Anfrage-Formular (Spec 5.2/6) ──
+// ── Passwort vergessen: Anfrage-Formular ──
 // Der einleitende Check läuft mit $with_cookie=false (echt anonyme Sicht auf
 // die Login-Seite). Alles danach läuft MIT Cookie: GET und POST müssen in
 // derselben Session laufen, sonst passt das dabei geladene CSRF-Token nicht
@@ -2616,11 +2615,11 @@ $r = request('POST', '/admin.php?action=forgot_password', [
     'csrf_token'   => $forgot_csrf,
     'forgot_email' => 'admin@example.test',
 ]);
-ok(str_contains($r['body'], 'E-Mail-Versand ist aktuell nicht möglich'), 'Treffer, aber SMTP unerreichbar: eigene technische Meldung (Spec 5.4)');
-ok(!is_file(user_token_file($tmp_root, $admin_id)), 'fail-closed: der Token wird nach gescheitertem Versand wieder verworfen (Spec 5.4)');
+ok(str_contains($r['body'], 'E-Mail-Versand ist aktuell nicht möglich'), 'Treffer, aber SMTP unerreichbar: eigene technische Meldung');
+ok(!is_file(user_token_file($tmp_root, $admin_id)), 'fail-closed: der Token wird nach gescheitertem Versand wieder verworfen');
 
 // "Passwort vergessen" gilt seit Einführung der Benutzerverwaltung für
-// alle Nutzer, nicht mehr nur den einen Admin (Spec 3.1, Entscheidung 9)
+// alle Nutzer, nicht mehr nur den einen Admin
 // — hier mit einem frisch
 // eingeladenen Content Creator geprüft, nicht nur zufällig über den Admin.
 // Die technische Meldung (statt der generischen "Nicht-Treffer"-Antwort)
@@ -2650,7 +2649,7 @@ $r = request('POST', '/admin.php?action=forgot_password', [
 ]);
 ok(str_contains($r['body'], 'E-Mail-Versand ist aktuell nicht möglich'), '"Passwort vergessen" findet auch einen Content Creator, nicht nur den Admin');
 
-// Rate-Limit: fest 5 Anfragen/Stunde/IP (Spec 6.1). Drei Treffer-Anfragen
+// Rate-Limit: fest 5 Anfragen/Stunde/IP. Drei Treffer-Anfragen
 // liefen oben schon durch (CSRF-Fehlversuch zählt nicht mit, siehe
 // handle_forgot_password_request()), macht 8 nach dieser Schleife.
 for ($i = 0; $i < 5; $i++) {
@@ -2671,7 +2670,7 @@ $r = request('POST', '/admin.php?action=forgot_password', [
 ok(str_contains($r['body'], $generic_text), 'über dem Limit bleibt die Antwort generisch, auch bei einem Treffer');
 ok(!is_file(user_token_file($tmp_root, $admin_id)), 'über dem Limit wird kein Token mehr angelegt, selbst bei einem Treffer');
 
-// ── Passwort vergessen: Reset-Formular (Spec 5.3/4) ──
+// ── Passwort vergessen: Reset-Formular ──
 
 group('Passwort vergessen: Reset-Formular');
 
@@ -2684,7 +2683,7 @@ $expired = request('GET', '/admin.php?action=reset_password&token=' . $expired_t
 ok(str_contains($expired, 'ungültig oder abgelaufen'), 'abgelaufener Token zeigt ebenfalls die Fehlerseite');
 
 // Eine neue Anfrage überschreibt eine bestehende — es kann nur ein Link pro
-// Nutzer gleichzeitig aktiv sein (Spec 4.1/5.4, jetzt pro Nutzer-Datei).
+// Nutzer gleichzeitig aktiv sein.
 $superseded_token = write_user_token($tmp_root, $admin_id);
 $current_token    = write_user_token($tmp_root, $admin_id);
 $superseded = request('GET', '/admin.php?action=reset_password&token=' . $superseded_token, null, false)['body'];

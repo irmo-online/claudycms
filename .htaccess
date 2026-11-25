@@ -6,8 +6,8 @@
 Options -Indexes
 
 # ─── Schutz sensibler Dateien ────────────────────────────────────────────────
-# Punkt-Dateien: v.a. .ftp-deploy-sync-state.json, das ein vollstaendiges
-# Manifest aller Dateien auf dem Server enthaelt und oeffentlich lesbar war.
+# Punkt-Dateien (z. B. Sync-Manifeste von Deploy-Werkzeugen, die alle
+# Dateinamen des Servers enthalten) gehoeren nicht ins Web.
 # Greift nur auf Dateinamen, nicht auf Verzeichnisse — /.well-known/... bleibt
 # fuer die Zertifikatsausstellung erreichbar. Dateien *in* Punkt-Ordnern
 # (content/.history/…) deckt die Rewrite-Regel weiter unten ab.
@@ -21,22 +21,11 @@ Options -Indexes
     </IfModule>
 </FilesMatch>
 
-# Deploy-Hook-Flags (PRD 5.1) gehoeren ebenfalls nicht ins Web.
-<FilesMatch "\.flag$">
-    <IfModule mod_authz_core.c>
-        Require all denied
-    </IfModule>
-    <IfModule !mod_authz_core.c>
-        Order deny,allow
-        Deny from all
-    </IfModule>
-</FilesMatch>
-
 # ─── Security-Header ─────────────────────────────────────────────────────────
 # index.php und admin.php setzen ihre Header selbst (inkl. CSP und
 # X-Frame-Options) — hier stehen nur die Werte, die auch fuer statische
 # Antworten gelten sollen: Stylesheet, Bilder, Fonts und die rohen
-# /content/*.md, die laut PRD oeffentlich bleiben.
+# /content/*.md, die oeffentlich bleiben.
 <IfModule mod_headers.c>
     Header always set X-Content-Type-Options "nosniff"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
@@ -76,7 +65,7 @@ Options -Indexes
     # Grund: Entwuerfe tragen "draft: true" *in* der Datei, und das sieht Apache
     # nicht — /content/entwurf.md waere sonst oeffentlich lesbar, obwohl die
     # Seite selbst 404 liefert. index.php prueft das Flag und liefert das rohe
-    # Markdown nur fuer veroeffentlichte Seiten aus (PRD: Markdown bleibt
+    # Markdown nur fuer veroeffentlichte Seiten aus (Markdown bleibt
     # oeffentlich). Muss VOR dem Pass-Through fuer existierende Dateien stehen,
     # sonst liefert der Server die Datei vorher aus. Bewusst ohne QSA: ein
     # angehaengtes ?raw=... wuerde den Wert aus der Regel ueberschreiben.

@@ -742,7 +742,7 @@ function is_active(string $item_slug, string $current): bool {
     <?php endif; ?>
     <?php
     // Favicon — nur eingebunden, wenn eins hochgeladen
-    // wurde (Spec 5.4), gleiches Muster wie das bedingte custom.css weiter
+    // wurde, gleiches Muster wie das bedingte custom.css weiter
     // unten: kein zusätzlicher Tag/Request im Normalfall ohne Favicon.
     if ($site_favicon !== ''):
     ?>
@@ -775,13 +775,13 @@ function is_active(string $item_slug, string $current): bool {
     <!-- Header / Navigation -->
     <?php
     // Logo-Position wirkt sich nur aus, solange überhaupt ein Logo gesetzt
-    // ist (Spec 5.1/5.3) — sonst bleibt der Header exakt wie zuvor.
+    // ist — sonst bleibt der Header exakt wie zuvor.
     $header_class = 'site-header' . ($site_logo !== '' ? ' site-header--' . $site_logo_position : '');
     ?>
     <header class="<?= htmlspecialchars($header_class) ?>">
         <?php if ($site_logo !== ''): ?>
             <!-- Mit Logo: Bild immer, Text-Titel nur im Modus "logo_und_titel"
-                 (Spec 5.3) — alt-Text trägt in beiden Fällen SITE_TITLE, damit
+                 — alt-Text trägt in beiden Fällen SITE_TITLE, damit
                  Screenreader/Suchmaschinen ihn nicht verlieren. -->
             <a href="<?= SITE_URL ?>/<?= DEFAULT_SLUG ?>" class="site-branding">
                 <img src="<?= SITE_URL ?>/assets/branding/<?= htmlspecialchars($site_logo) ?>" alt="<?= htmlspecialchars(SITE_TITLE) ?>" class="site-logo">

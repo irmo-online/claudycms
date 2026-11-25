@@ -14,8 +14,8 @@
  * darauf einen php -S. Die echten Inhalte des Repos werden nicht angefasst,
  * und der Rate-Limit-Zähler landet ebenfalls im Wegwerf-Verzeichnis.
  *
- * Diese Datei wird nicht deployed — siehe exclude-Liste in
- * .github/workflows/deploy.yml.
+ * Der Ordner tests/ gehört nur zum Repository und muss nicht auf den
+ * Webserver hochgeladen werden.
  */
 
 $repo_root = dirname(__DIR__);
@@ -453,7 +453,7 @@ is_same(content_file('verschachtelt.md'), false, 'Datei ist weg');
 is_same(request('DELETE', '/api.php/pages/verschachtelt')['status'], 404, 'zweites Loeschen -> 404');
 is_same(request('DELETE', '/api.php/pages')['status'], 405, 'DELETE ohne Slug -> 405');
 
-// ── Vorversionen (Feature-PRD 6.3 gilt fuer KI-Anbindung *und* API) ──
+// ── Vorversionen ──
 
 group('Backup vor Schreibzugriffen');
 

@@ -162,8 +162,7 @@ group('5. Kettenwarnung (nicht blockierend)');
 // ─────────────────────────────────────────────────────────────────────────────
 
 // "to" zeigt auf eine bereits bestehende Redirect-Quelle ("/alte-seite") —
-// das Anlegen gelingt trotzdem, es gibt nur einen Hinweis (Spec: keine
-// automatische Kettenauflösung, Kettenbildung ist Admin-Verantwortung).
+// das Anlegen gelingt trotzdem, es gibt nur einen Hinweis.
 $chain = cms_create_redirect('/noch-eine-quelle', '/alte-seite', [], 'test');
 ok($chain['ok'], 'ein Redirect auf eine bestehende Redirect-Quelle wird trotzdem angelegt');
 ok($chain['warning'] !== null, 'aber mit einer Kettenwarnung');

@@ -1,4 +1,4 @@
-# Kein direkter HTTP-Zugriff auf Library-Dateien
+# Kein direkter HTTP-Zugriff auf Erweiterungen
 <IfModule mod_authz_core.c>
     Require all denied
 </IfModule>

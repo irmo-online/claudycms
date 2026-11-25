@@ -25,7 +25,7 @@ if (!defined('CMS_ENTRY')) {
 // Handler ändert deshalb über cfg_update() nur seine eigenen Schlüssel einer
 // frisch geladenen Config — save_config() erhält Fremdschlüssel (siehe dessen
 // Kommentar), das trägt genau diesen Fall.
-// guard() prüft die Rolle vor dem Token (Spec 6.2): Der GET-Gate in admin.php
+// guard() prüft die Rolle vor dem Token: Der GET-Gate in admin.php
 // deckt nur die Anzeige ab, jeder POST-Handler bräuchte ohne eigenen Check
 // nicht einmal die passende action in der URL.
 
@@ -152,7 +152,7 @@ function handle_save_contact_settings(): HandlerResult {
 // Klick hier hätte nur noch einen Wert geändert, den mcp.php gar nicht mehr
 // liest.
 
-// Live vs. Entwurf umschalten (Feature-PRD 6.2). Wirkt sich erst auf den
+// Live vs. Entwurf umschalten. Wirkt sich erst auf den
 // nächsten KI-Schreibzugriff aus, nicht rückwirkend auf bestehende Entwürfe.
 function handle_save_ai_settings(): HandlerResult {
     $error = guard('settings') ?? cfg_update(static function (array $cfg): array {
@@ -162,8 +162,8 @@ function handle_save_ai_settings(): HandlerResult {
     return HandlerResult::fromError($error, 'Einstellung gespeichert.', 'ai');
 }
 
-// Undo: letzte gesicherte Vorversion einer Seite wiederherstellen
-// (Feature-PRD 6.3). cms_history_restore() sichert den überschriebenen
+// Undo: letzte gesicherte Vorversion einer Seite wiederherstellen.
+// cms_history_restore() sichert den überschriebenen
 // Stand selbst, bevor es zurücksetzt — bleibt also seinerseits umkehrbar.
 function handle_restore_history(): HandlerResult {
     $error = guard('settings');

@@ -1,5 +1,5 @@
 <?php
-/** Fehlerseite für einen ungültigen/abgelaufenen Reset-Token (Spec 5.3). */
+/** Fehlerseite für einen ungültigen/abgelaufenen Reset-Token. */
 if (!defined('CMS_ENTRY')) {
     http_response_code(403);
     exit('Forbidden');

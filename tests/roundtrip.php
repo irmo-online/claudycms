@@ -15,8 +15,8 @@
  * Instanz-Diff aus "Übergabe Security-Fixes.md" da (zwei Stände parallel
  * per php -S starten und die Ausgabe vergleichen).
  *
- * Diese Datei wird nicht deployed — siehe exclude-Liste in
- * .github/workflows/deploy.yml.
+ * Der Ordner tests/ gehört nur zum Repository und muss nicht auf den
+ * Webserver hochgeladen werden.
  */
 
 // ─── Testumgebung ────────────────────────────────────────────────────────────
@@ -407,7 +407,7 @@ $res = cms_delete_content_file('kontakt.md');
 ok($res['ok'], 'delete_content_file löscht eine reguläre .md-Datei');
 
 // ─────────────────────────────────────────────────────────────────────────────
-group('7. Versionshistorie und KI-Kennzeichnung (Feature-PRD 5.2/6.3)');
+group('7. Versionshistorie und KI-Kennzeichnung');
 // ─────────────────────────────────────────────────────────────────────────────
 
 fixture('historie.md', "---\ntitle: Historie\nslug: historie\n---\n\nStand eins");

@@ -1,8 +1,8 @@
 <?php
 /**
- * Formular für ein neues Passwort bei gültigem Token (Spec 5.3).
+ * Formular für ein neues Passwort bei gültigem Token.
  * $is_new unterscheidet die Einladung eines frischen Nutzers ("Passwort
- * festlegen") vom Zurücksetzen eines bestehenden (Spec 5.4). $title ist die
+ * festlegen") vom Zurücksetzen eines bestehenden. $title ist die
  * passende Überschrift, $token und $error (?string) kommen aus admin.php.
  */
 if (!defined('CMS_ENTRY')) {

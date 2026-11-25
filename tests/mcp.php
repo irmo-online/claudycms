@@ -15,8 +15,8 @@
  * Konfiguration zwischendurch umschreiben — so wird auch der Schalter
  * ai_publish_immediately in beiden Stellungen geprüft.
  *
- * Diese Datei wird nicht deployed — siehe exclude-Liste in
- * .github/workflows/deploy.yml.
+ * Der Ordner tests/ gehört nur zum Repository und muss nicht auf den
+ * Webserver hochgeladen werden.
  */
 
 $repo_root = dirname(__DIR__);
@@ -532,7 +532,7 @@ ok(
     'kein preg_match-Warning im Server-Log'
 );
 
-// Migration (Spec 4.2): der allererste Request oben hat bereits
+// Migration: der allererste Request oben hat bereits
 // cms_migrate_users() durchlaufen und aus ai_connector_token (config.php)
 // einen Admin-Account in users.json angelegt — mcp.php prüft von hier an nur
 // noch gegen users.json, nicht mehr gegen config.php.
@@ -833,7 +833,7 @@ $r = call_tool('create_landingpage', ['slug' => 'ohne-body', 'title' => 'x']);
 ok(tool_failed($r), 'create_landingpage ohne body -> isError');
 is_same(content_file('ohne-body.md'), false, 'ohne body wird keine Datei angelegt');
 
-// contentType wird immer erzwungen (Spec 4.1) — auch wenn meta widerspricht.
+// contentType wird immer erzwungen — auch wenn meta widerspricht.
 $r = call_tool('create_landingpage', [
     'slug' => 'erzwungen', 'title' => 'x', 'body' => '<p>x</p>',
     'meta' => ['contentType' => 'markdown'],
@@ -842,7 +842,7 @@ ok(!tool_failed($r), 'create_landingpage funktioniert trotz widersprechendem met
 ok(str_contains((string) content_file('erzwungen.md'), 'contentType: html'), 'contentType wird dennoch auf html gesetzt');
 
 // list_pages/get_page/delete_page sind slug-basiert und funktionieren fuer
-// Landingpages unveraendert mit (Spec 5.3) — kein eigenes get_landingpage noetig.
+// Landingpages unveraendert mit — kein eigenes get_landingpage noetig.
 $r = call_tool('get_page', ['slug' => 'kampagne']);
 ok(!tool_failed($r), 'get_page funktioniert auch fuer eine Landingpage');
 $page = tool_json($r);
@@ -1371,7 +1371,7 @@ group('Rate-Limits');
 
 reset_rate_limits();
 
-// Schreib-Limit: 50 Tool-Calls pro Fenster und Installation (Feature-PRD 6.6).
+// Schreib-Limit: 50 Tool-Calls pro Fenster und Installation.
 // Lesen zaehlt nicht mit, deshalb zwischendurch ein get_page.
 for ($i = 1; $i <= 50; $i++) {
     $r = call_tool('update_page', ['slug' => 'neue-seite', 'body' => "Fassung {$i}"]);
@@ -1432,8 +1432,7 @@ ok(
     'restore_styles zeigt die Tageslimit-Meldung, nicht "keine Historie" (Vorversionen existieren bereits)'
 );
 
-// Die Landingpage-Tools teilen sich denselben Zaehler wie die Seiten-Tools
-// (Spec 6.1).
+// Die Landingpage-Tools teilen sich denselben Zaehler wie die Seiten-Tools.
 $r = call_tool('create_landingpage', ['slug' => 'limit-test', 'title' => 'x', 'body' => '<p>x</p>']);
 ok(tool_failed($r), 'create_landingpage wird bei ausgeschoepftem Limit abgewiesen');
 is_same(content_file('limit-test.md'), false, 'der abgewiesene Aufruf hat nichts angelegt');
@@ -1481,7 +1480,7 @@ for ($i = 1; $i <= 61; $i++) {
 is_same($statuses[0], 401, 'die ersten Requests werden regulaer mit 401 abgewiesen');
 is_same($statuses[60], 429, 'nach 60 Requests je Minute greift das Limit — auch ohne gueltigen Token');
 
-// ── MCP-Rollen (Spec 5.5) ──
+// ── MCP-Rollen ──
 //
 // Ausführliche Login-/Benutzerverwaltungs-Abdeckung steht in tests/admin.php
 // (eigene Superlist-Unteraufgabe) — hier geht es nur um das, was mcp.php
@@ -1526,7 +1525,7 @@ clearstatcache(true, $tmp_root . '/content/cc-mcp-seite.md');
 ok(!is_file($tmp_root . '/content/cc-mcp-seite.md'), 'Datei ist wirklich weg');
 
 // Serverseitige Rechteprüfung bei tools/call greift zusätzlich zur
-// gefilterten Liste (Spec 5.5: "kein Sicherheitsmechanismus, nur UX") — ein
+// gefilterten Liste — ein
 // Styles-Tool bleibt auch dann gesperrt, wenn es direkt (am Client-Cache
 // vorbei) aufgerufen wird.
 $r = rpc('tools/call', ['name' => 'get_styles', 'arguments' => new stdClass()], 1, $creator_token);
@@ -1552,8 +1551,7 @@ $r = rpc('initialize', [], 1, $creator_token);
 ok(!str_contains($r['json']['result']['instructions'] ?? '', 'update_styles'), 'Content-Creator-Instructions erwähnen sie nicht');
 ok(!str_contains($r['json']['result']['instructions'] ?? '', 'create_redirect'), 'Content-Creator-Instructions erwähnen die Redirect-Tools ebenfalls nicht');
 
-// Gesperrter Nutzer: gleiche Ablehnung wie ein ungueltiger Token (Spec 6.4,
-// keine Existenz-Preisgabe) — mcp.php prueft den Status bei jedem Request neu.
+// Gesperrter Nutzer: gleiche Ablehnung wie ein ungueltiger Token — mcp.php prueft den Status bei jedem Request neu.
 $locked_token = add_test_user($tmp_root, 'content_creator', 'gesperrt');
 $r = rpc('ping', [], 1, $locked_token);
 is_same($r['status'], 401, 'ein gesperrter Nutzer wird abgelehnt');

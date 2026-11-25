@@ -29,7 +29,7 @@ if (!defined('CONTENT_DIR')) {
     define('CONTENT_DIR', dirname(__DIR__) . '/content');
 }
 
-// Aufbewahrung der Vorversionen (Feature-PRD 6.3): pro Seite die letzten 20
+// Aufbewahrung der Vorversionen: pro Seite die letzten 20
 // behalten UND alles älter als 90 Tage entfernen — was zuerst greift.
 if (!defined('CMS_HISTORY_KEEP')) {
     define('CMS_HISTORY_KEEP', 20);
@@ -509,7 +509,7 @@ function cms_crud_error(string $code, string $message): array {
  *
  * Nur wenn $opts['edited_by'] gesetzt ist — normale Admin-Änderungen bleiben
  * ungekennzeichnet, damit "lastEditedBy: ai" im Admin-Listing tatsächlich
- * bedeutet, dass die KI zuletzt geschrieben hat (Feature-PRD 5.2).
+ * bedeutet, dass die KI zuletzt geschrieben hat.
  * Der Zeitstempel ist ISO-8601 (date('c')); cms_build_frontmatter() setzt ihn
  * wegen des Doppelpunkts in Anführungszeichen.
  */
@@ -528,7 +528,7 @@ function cms_apply_edit_marks(array $meta, array $opts): array {
  *
  * Schlägt die Sicherung fehl, bricht der Aufrufer ab statt weiterzuschreiben:
  * ein KI-Schreibzugriff ohne Vorversion nimmt dem Betreiber genau die
- * Rückfalloption, für die das Backup da ist (Feature-PRD 6.3).
+ * Rückfalloption, für die das Backup da ist.
  *
  * @return array{ok: bool}|array{ok: false, code: string, error: string}
  */
@@ -740,8 +740,7 @@ function cms_save_content_file(string $relative, array $meta, string $body, ?str
 // führendem Punkt ab, und die .htaccess sperrt den HTTP-Zugriff.
 //
 // Gesichert wird ausschliesslich vor Schreibzugriffen mit $opts['backup'] —
-// also über die KI-Anbindung und die API, nicht im Admin-Backend
-// (Feature-PRD 6.3).
+// also über die KI-Anbindung und die API, nicht im Admin-Backend.
 
 /** Wurzelverzeichnis der Versionshistorie. */
 function cms_history_root(?string $dir = null): string {
@@ -848,7 +847,7 @@ function cms_history_list(string $slug, ?string $dir = null): array {
 
 /**
  * Räumt die Vorversionen einer Seite auf: die neuesten $keep behalten UND
- * alles älter als $max_age entfernen — was zuerst greift (Feature-PRD 6.3).
+ * alles älter als $max_age entfernen — was zuerst greift.
  *
  * Läuft bei jedem gesicherten Schreibzugriff, nicht zeitgesteuert: auf
  * Shared-Hosting gibt es keinen Cron, auf den man sich verlassen könnte.
@@ -957,8 +956,7 @@ function cms_validate_landingpage_html(string $html): ?string {
     }
 
     // Grobe Wohlgeformtheits-Prüfung über DOMDocument::loadHTML() statt eines
-    // vollständigen HTML5-Parsers (Spec 6.3: keine neue Abhängigkeit,
-    // DOMDocument ist Bordmittel). libxmls interner Parser kennt nur HTML4 —
+    // vollständigen HTML5-Parsers. libxmls interner Parser kennt nur HTML4 —
     // moderne Tags wie section/article/svg meldet er als "Tag X invalid"
     // (Code 801), ein unescapetes "&" als Code 23. Beides ist in echtem,
     // harmlosem Landingpage-HTML alltäglich und wird bewusst ignoriert.

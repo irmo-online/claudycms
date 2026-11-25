@@ -8,7 +8,7 @@
  * Deckt Spec Abschnitt 10 ab: Voraussetzungsprüfung, Formular-Validierung,
  * erfolgreiche Installation (config.php + users.json korrekt geschrieben,
  * Login-Account also sofort funktionsfähig), Self-Lock nach Abschluss und
- * Race-Condition-Schutz bei parallelen Requests (Spec 6.4). Bisher nur durch
+ * Race-Condition-Schutz bei parallelen Requests. Bisher nur durch
  * Ad-hoc-Smoketests geprüft, keine automatisierte Testsuite.
  *
  * Gleiches Wegwerf-Webroot-Verfahren wie tests/admin.php/tests/api.php/
@@ -25,8 +25,8 @@
  * weiterhin "genau ein Erfolg, Rest kollidiert", aber ohne echte
  * Gleichzeitigkeit im Schreibvorgang selbst.
  *
- * Diese Datei wird nicht deployed — siehe exclude-Liste in
- * .github/workflows/main.yml (der gesamte tests/-Ordner ist ausgeschlossen).
+ * Der Ordner tests/ gehört nur zum Repository und muss nicht auf den
+ * Webserver hochgeladen werden.
  */
 
 // config/config.php verlangt CMS_ENTRY (Spec 5.3, cms_render_config_php()) —
@@ -210,7 +210,7 @@ function stop_servers(): void {
 // ─── HTTP-Helfer mit Session-Cookie ─────────────────────────────────────────
 //
 // Anders als tests/admin.php gibt es hier keinen Login — das Cookie trägt
-// nur die Session, in der csrf_token() sein Token ablegt (Spec 6.3).
+// nur die Session, in der csrf_token() sein Token ablegt.
 
 /**
  * Ein Request gegen eine Test-Instanz.
@@ -291,7 +291,7 @@ $cookie = '';
 
 echo "install.php-Tests gegen {$base_url}\n";
 
-// ── Voraussetzungsprüfung (Spec 5.5, 6.2) ──
+// ── Voraussetzungsprüfung ──
 
 group('Voraussetzungsprüfung');
 
@@ -326,7 +326,7 @@ ok(
     'der <style>-Block trägt genau den Nonce aus dem Header'
 );
 
-// ── Formular-Validierung (Spec 5.2) ──
+// ── Formular-Validierung ──
 
 group('Formular-Validierung');
 
@@ -358,7 +358,7 @@ ok(str_contains($r['body'], 'Ungültige Domain'), 'ungültiges Domain-Format wir
 // Versehen vollständig durchläuft (eine leere Domain allein wäre zusammen mit
 // den übrigen $valid-Werten eine tatsächlich erfolgreiche Installation).
 $r = request($base_url, $cookie, 'POST', '/install.php', ['site_domain' => '', 'admin_email' => 'keine-email'] + $valid);
-ok(!str_contains($r['body'], 'Ungültige Domain'), 'eine leere Domain selbst ist gültig (Spec 5.2: optional, "automatisch")');
+ok(!str_contains($r['body'], 'Ungültige Domain'), 'eine leere Domain selbst ist gültig');
 ok(str_contains($r['body'], 'Ungültige E-Mail-Adresse'), 'die Validierung läuft mit leerer Domain trotzdem weiter bis zum nächsten Fehler');
 
 $r = request($base_url, $cookie, 'POST', '/install.php', ['admin_email' => 'keine-email'] + $valid);
@@ -373,7 +373,7 @@ ok(str_contains($r['body'], 'nicht überein'), 'Passwort und Bestätigung unters
 ok(!is_file($tmp_root . '/config/config.php'), 'keiner der Validierungsfehler hat config.php geschrieben');
 ok(load_test_users($tmp_root) === [], 'keiner der Validierungsfehler hat einen Nutzer angelegt');
 
-// ── Erfolgreiche Installation (Spec 5.3, 5.4) ──
+// ── Erfolgreiche Installation ──
 
 group('Erfolgreiche Installation');
 
@@ -383,7 +383,7 @@ ok(str_contains($r['body'], 'Installation abgeschlossen'), 'gültige Eingaben f�
 $config = load_test_config($tmp_root);
 is_same($config['site_title'] ?? null, 'Testinstallation', 'config.php enthält den eingegebenen Site-Titel');
 is_same($config['site_domain'] ?? null, 'https://www.beispiel-install.test', 'config.php enthält die eingegebene Domain');
-is_same($config['admin_password_hash'] ?? null, 'REPLACE_WITH_PASSWORD_HASH', 'admin_password_hash bleibt der Platzhalter aus der Vorlage (Spec 5.3) — das Passwort landet nur in users.json');
+is_same($config['admin_password_hash'] ?? null, 'REPLACE_WITH_PASSWORD_HASH', 'admin_password_hash bleibt der Platzhalter aus der Vorlage — das Passwort landet nur in users.json');
 
 $users = load_test_users($tmp_root);
 is_same(count($users), 1, 'genau ein Nutzer wurde angelegt');
@@ -394,7 +394,7 @@ is_same($admin['status'] ?? null, 'aktiv', 'Status ist aktiv');
 ok($admin['mcp_token_hash'] === null, 'noch kein MCP-Token (entsteht erst über den Tab "KI-Anbindung", Spec 5.4)');
 ok(password_verify('ein-sehr-sicheres-passwort', (string) ($admin['password_hash'] ?? '')), 'Login funktioniert sofort: das eingegebene Passwort passt zum gespeicherten Hash');
 
-// ── Self-Lock nach Abschluss (Spec 5.1, 6.1) ──
+// ── Self-Lock nach Abschluss ──
 
 group('Self-Lock nach Abschluss');
 
@@ -411,7 +411,7 @@ ok(str_contains($r['body'], 'Bereits installiert'), 'ein POST mit neuen Daten na
 is_same((string) file_get_contents($tmp_root . '/config/config.php'), $config_before, 'config.php bleibt byteidentisch unangetastet');
 is_same((string) file_get_contents($tmp_root . '/config/users.json'), $users_before, 'users.json bleibt byteidentisch unangetastet — kein zweiter Admin-Account');
 
-// ── Race-Condition-Schutz (Spec 6.4) ──
+// ── Race-Condition-Schutz ──
 //
 // Eigener, frischer Wegwerf-Webroot (die Instanz oben ist bereits
 // installiert) plus eigener Server MIT mehreren Worker-Prozessen — nur so
@@ -430,8 +430,7 @@ start_server($race_root, $race_port, 8);
 
 // Eine gemeinsame Session für alle parallelen Requests — ein einzelner GET
 // holt Session-Cookie + CSRF-Token, die dann für jeden Request identisch
-// mitgeschickt werden (Spec 6.3 verlangt nur ein gültiges Token, keine
-// Ein-Token-pro-Request-Bindung).
+// mitgeschickt werden.
 $race_cookie = '';
 $race_form   = request($race_base_url, $race_cookie, 'GET', '/install.php')['body'];
 $race_csrf   = csrf_from($race_form);

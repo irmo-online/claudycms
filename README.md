@@ -108,6 +108,11 @@ Jedes Skript beendet sich mit Exit-Code 0 (grün) oder 1.
 
 Siehe [CONTRIBUTING.md](CONTRIBUTING.md). Fehler und Wünsche gehören in die Issues.
 
+## Drittkomponenten
+
+- [PHPMailer](https://github.com/PHPMailer/PHPMailer) (`lib/phpmailer/`) unter der LGPL 2.1.
+- Die Schriften League Spartan und Quicksand (`assets/fonts/`) unter der SIL Open Font License 1.1, siehe [assets/fonts/LICENSE.md](assets/fonts/LICENSE.md).
+
 ## Hinweis
 
 ClaudyCMS ist ein eigenständiges Projekt und steht in keiner Verbindung zu Anthropic oder Claude. „Claude" ist eine Marke von Anthropic und wird hier nur beschreibend für die MCP-Kompatibilität genannt.

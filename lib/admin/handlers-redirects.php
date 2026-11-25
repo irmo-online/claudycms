@@ -4,8 +4,7 @@ declare(strict_types=1);
 /**
  * POST-Handler für den Tab "Redirects": Anlegen, Löschen.
  *
- * Jeder Handler prüft die Rolle 'redirects' über guard() selbst (Spec 6.2,
- * gleiches Muster wie beim Tab "Benutzer") — die Formulare posten ohne
+ * Jeder Handler prüft die Rolle 'redirects' über guard() selbst — die Formulare posten ohne
  * ?action=redirects in der URL auf admin.php.
  */
 if (!defined('CMS_ENTRY')) {

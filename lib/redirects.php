@@ -123,7 +123,7 @@ function cms_load_redirects(): array {
  * index.php). $slug kommt ohne führenden Schrägstrich (wie $requested_slug
  * dort), "from" wird intern mit führendem "/" gespeichert. Keine
  * automatische Kettenauflösung — ein Treffer, der selbst wieder auf eine
- * Redirect-Quelle zeigt, wird nur einmal weitergeleitet (Spec-Entscheidung).
+ * Redirect-Quelle zeigt, wird nur einmal weitergeleitet.
  */
 function cms_redirects_resolve(string $slug): ?string {
     $from = '/' . ltrim($slug, '/');
@@ -158,7 +158,7 @@ function cms_redirects_valid_path(string $path): bool {
 // ─── Schreiben ──────────────────────────────────────────────────────────────
 
 /**
- * Legt einen neuen Redirect an (Spec Punkt 7). $existing_content_slugs sind
+ * Legt einen neuen Redirect an. $existing_content_slugs sind
  * die Slugs aller Seiten aus dem Content-Index (ohne führenden "/") — ein
  * Redirect darf keine lebende Seite verdecken (Acceptance-Kriterium). Die
  * Kollisionsprüfung mit bestehenden Redirect-Quellen läuft *innerhalb*

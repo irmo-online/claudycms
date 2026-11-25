@@ -6,7 +6,7 @@ if (!defined('CMS_ENTRY')) {
     exit('Forbidden');
 }
 ?>
-    <!-- ─── TAB "BENUTZER" (Spec 5.2) ──────────────────────────────────────── -->
+    <!-- ─── TAB "BENUTZER" ──────────────────────────────────────── -->
     <?php
         // $me kommt aus dem Kopf des Templates.
         $users_list  = cms_load_users();

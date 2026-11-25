@@ -136,17 +136,17 @@ function reset_ip_login_attempts(): void {
 }
 
 /**
- * Brute-force protection pro Nutzer-Konto (Spec 6.3), zusätzlich
+ * Brute-force protection pro Nutzer-Konto, zusätzlich
  * zum IP-Lockout — verhindert, dass ein Angreifer mit vielen IP-Adressen ein
  * einzelnes Konto gezielt durch Passwort-Raten angreift, ohne vom IP-Lockout
  * gebremst zu werden. 1:1 dieselbe Mechanik wie ip_rate_limit_file() & Co.,
  * nur nach E-Mail statt IP geschlüsselt, und bewusst an dieselben Grenzwerte
  * gekoppelt (MAX_LOGIN_ATTEMPTS/LOGIN_LOCKOUT_TIME) statt eigener
- * Einstellungen (Spec 8, Punkt 4, v0.3).
+ * Einstellungen.
  *
  * Bewusst kein eigener Eintrag in login_lockout_remaining(): eine sichtbare
  * Wartezeit würde verraten, dass die eingegebene E-Mail zu einem echten,
- * gerade gesperrten Konto gehört — Enumeration-Schutz (Spec 6.4) gilt auch
+ * gerade gesperrten Konto gehört — Enumeration-Schutz gilt auch
  * hier, nicht nur für den Fehlertext selbst.
  */
 function account_rate_limit_file(string $email): string {
@@ -206,7 +206,7 @@ function login_lockout_remaining(): int {
     return max($session_remaining, $ip_remaining);
 }
 
-// ─── Passwort vergessen/Einladung: Token-Verwaltung pro Nutzer (Spec 4.1/5.4)
+// ─── Passwort vergessen/Einladung: Token-Verwaltung pro Nutzer
 // ────────────────────────────────────────────────────────────────────────────
 //
 // Dateibasiert wie die Rate-Limits, aber eigenes Verzeichnis und eigene
@@ -223,7 +223,7 @@ function login_lockout_remaining(): int {
 // Datei würde sich gegenseitig überschreiben. Ursprünglich (nur ein Admin)
 // genügte eine einzelne Datei; diese Umstellung ist Spec 8 Punkt 1 (v0.3)
 // und bedient jetzt sowohl "Passwort vergessen" als auch Einladungen mit
-// demselben Mechanismus (Spec 5.4).
+// demselben Mechanismus.
 //
 // Die Mail-URL trägt nur den Token, keine user_id — find_user_by_token()
 // durchsucht deshalb alle Nutzer-Token-Dateien, analog
@@ -291,16 +291,16 @@ function consume_user_token(string $user_id): void {
 }
 
 /**
- * Verarbeitet den POST des Formulars "Passwort vergessen" (Spec 5.2).
+ * Verarbeitet den POST des Formulars "Passwort vergessen".
  * Seit Einführung der Benutzerverwaltung für alle Nutzer, nicht mehr nur
- * den einen Admin (Spec 3.1, Entscheidung 9) — die E-Mail wird gegen
+ * den einen Admin — die E-Mail wird gegen
  * users.json geprüft statt fest
  * gegen smtp_from_email.
  *
- * Enumeration-Schutz (Spec 6.2/6.4): Treffer, Nicht-Treffer, gesperrtes
- * Konto und Rate-Limit-Überschreitung (Spec 6.1) liefern bewusst denselben
+ * Enumeration-Schutz: Treffer, Nicht-Treffer, gesperrtes
+ * Konto und Rate-Limit-Überschreitung liefern bewusst denselben
  * Text. Nur ein technischer Mailversand-Fehler bekommt eine eigene Meldung
- * (Spec 5.4) — der hängt nicht von der eingegebenen Adresse ab, verrät also
+ * — der hängt nicht von der eingegebenen Adresse ab, verrät also
  * nichts.
  *
  * @return array{type:string, text:string}
@@ -321,7 +321,7 @@ function handle_forgot_password_request(): array {
         return ['type' => 'error', 'text' => 'E-Mail-Versand ist aktuell nicht möglich. Bitte versuch es später erneut.'];
     }
 
-    // Fest verdrahtet: 5 Anfragen/Stunde/IP (Spec 6.1). Kein Hinweis im
+    // Fest verdrahtet: 5 Anfragen/Stunde/IP. Kein Hinweis im
     // Antworttext, sonst verriete das Limit selbst schon etwas.
     $limit = cms_rate_limit_hit('password_reset', cms_client_ip(), 3600);
     if ($limit['count'] > 5) {
@@ -349,7 +349,7 @@ function handle_forgot_password_request(): array {
 
     if (!send_user_email($cfg, $user['email'], $subject, $body)) {
         // Fail-closed wie beim Backup der KI-Anbindung: lieber gar kein Token
-        // stehen lassen als einen Link, der nie verschickt wurde (Spec 5.4).
+        // stehen lassen als einen Link, der nie verschickt wurde.
         consume_user_token($user['id']);
         return ['type' => 'error', 'text' => 'E-Mail-Versand ist aktuell nicht möglich. Bitte versuch es später erneut.'];
     }
@@ -358,7 +358,7 @@ function handle_forgot_password_request(): array {
 }
 
 /**
- * Verarbeitet den POST des Reset-Formulars (Spec 5.3/4). Der Token wurde vom
+ * Verarbeitet den POST des Reset-Formulars. Der Token wurde vom
  * Aufrufer bereits als gültig geprüft — auf jedem POST läuft das über
  * dieselbe Weiche wie beim GET, das deckt die von der Spec verlangte
  * erneute Prüfung ab (kein zweiter Check nötig innerhalb desselben Requests).
@@ -382,7 +382,7 @@ function handle_reset_password_request(): ?string {
     }
 
     // Das Passwort liegt in users.json, der Token in einer Datei
-    // pro Nutzer (Spec 5.4) — der Aufrufer (die Route) hat den Token bereits
+    // pro Nutzer — der Aufrufer (die Route) hat den Token bereits
     // gegen find_user_by_token() geprüft, hier nur die eigentliche Änderung.
     $token = post_str('token');
     $user  = find_user_by_token($token);
@@ -497,10 +497,9 @@ function is_logged_in(): bool {
     $_SESSION['last_activity'] = $now;
 
     // Rolle/Status werden pro Request nachgeschlagen, nicht nur beim Login
-    // (Spec 5.2) — eine Sperrung durch den Admin wirkt so spätestens beim
+    // — eine Sperrung durch den Admin wirkt so spätestens beim
     // nächsten Request dieser Session, nicht erst nach einem erneuten
-    // Login-Versuch (Spec 6.7 nennt dieselbe Grenze: erst beim nächsten
-    // Request, nicht sofort serverseitig erzwingbar).
+    // Login-Versuch.
     $user = cms_find_user_by_id($_SESSION['user_id']);
     return $user !== null && ($user['status'] ?? '') === UserStatus::Aktiv->value;
 }
@@ -512,9 +511,7 @@ function current_user(): ?array {
 
 /**
  * Bricht mit 403 ab, wenn der eingeloggte Nutzer das angegebene Recht nicht
- * hat (Spec 6.2: jede admin-only Route prüft die Rolle bei jedem Request,
- * nicht nur die Sichtbarkeit im Menü — UI-Ausblendung allein ist kein
- * Zugriffsschutz). Muss nach dem is_logged_in()-Gate weiter unten aufgerufen
+ * hat. Muss nach dem is_logged_in()-Gate weiter unten aufgerufen
  * werden, setzt also einen eingeloggten Nutzer voraus.
  */
 function require_role(string $permission): void {
@@ -551,7 +548,7 @@ function handle_login_request(): string {
 
         $account_active = $user !== null && ($user['status'] ?? '') === UserStatus::Aktiv->value;
 
-        // Enumeration-Schutz (Spec 6.4): falsche E-Mail, falsches Passwort,
+        // Enumeration-Schutz: falsche E-Mail, falsches Passwort,
         // gesperrtes Konto und ein durch Fehlversuche ausgeschöpftes
         // Konto-Lockout liefern unten bewusst denselben Text — kein eigener
         // Zweig mit eigener Meldung wie beim IP-/Session-Lockout oben (der

@@ -12,7 +12,7 @@ if (!defined('CMS_ENTRY')) {
     exit('Forbidden');
 }
 
-// ─── "Mein Profil": eigene E-Mail + eigenes Passwort (Spec 5.3) ────────────
+// ─── "Mein Profil": eigene E-Mail + eigenes Passwort ────────────
 // Eigene Seite für jede Rolle (action=profile), deshalb guard(null) — die
 // Route ist für jeden eingeloggten Nutzer legitim, jeder ändert nur sich
 // selbst (current_user()). Website-/SMTP-/Sicherheits-Felder gehören
@@ -28,7 +28,7 @@ function handle_save_profile(): HandlerResult {
     $cur_pw = post_str('current_password');
 
     // E-Mail ändern (optional) — verlangt wie das Passwort-Ändern unten
-    // das aktuelle Passwort zur Bestätigung (Spec 5.3).
+    // das aktuelle Passwort zur Bestätigung.
     $new_email = trim(post_str('profile_email'));
     $email_changed = $new_email !== '' && strtolower($new_email) !== strtolower($me['email']);
     if ($email_changed) {
@@ -68,7 +68,7 @@ function handle_save_profile(): HandlerResult {
     return HandlerResult::success('Profil aktualisiert.', 'profile');
 }
 
-// Eigenen MCP-Connector-Token neu generieren (Spec 5.3) — jeder eingeloggte
+// Eigenen MCP-Connector-Token neu generieren — jeder eingeloggte
 // Nutzer für sich selbst, unabhängig von der Rolle. Anders als
 // regenerate_user_token unten (nur admin, für beliebige Nutzer) kein
 // Rollen-Recht nötig: hier kann niemand einen fremden Token treffen,
@@ -90,9 +90,9 @@ function handle_regenerate_own_token(): HandlerResult {
     );
 }
 
-// ─── Tab "Benutzer": Einladen, Sperren/Entsperren, Löschen, Token (Spec 5.2) ─
+// ─── Tab "Benutzer": Einladen, Sperren/Entsperren, Löschen, Token ─
 //
-// Jeder Handler prüft die Rolle 'users' über guard() selbst (Spec 6.2) —
+// Jeder Handler prüft die Rolle 'users' über guard() selbst —
 // nicht nur der zentrale $action==='users'-Check in admin.php, weil diese
 // POST-Ziele wie die anderen Aktions-Handler ohne ?action=users in der URL
 // auskommen (das Formular postet auf admin.php).
@@ -114,7 +114,7 @@ function handle_invite_user(): HandlerResult {
     );
 }
 
-// Einladung erneut senden ODER Passwort manuell zurücksetzen (Spec 5.2) —
+// Einladung erneut senden ODER Passwort manuell zurücksetzen —
 // serverseitig identisch: beides erzeugt einen frischen Token und verschickt
 // denselben Link, nur der Button-Text im Tab unterscheidet sich je nachdem,
 // ob der Nutzer schon ein Passwort hat.
@@ -132,7 +132,7 @@ function handle_send_user_token(): HandlerResult {
         : HandlerResult::failure('E-Mail-Versand ist aktuell nicht möglich. Bitte versuch es später erneut.', 'users');
 }
 
-// MCP-Token regenerieren, auch für andere Nutzer (Spec 5.2). Anders als beim
+// MCP-Token regenerieren, auch für andere Nutzer. Anders als beim
 // eigenen Connector-Token unter "Mein Profil" gibt es keine Mail an sich
 // selbst — der Admin sieht den neuen Link direkt hier und gibt ihn manuell
 // weiter. Es wird nur der Hash gespeichert (lib/users.php), der Klartext ist
@@ -156,7 +156,7 @@ function handle_regenerate_user_token(): HandlerResult {
 }
 
 // Sperren/Entsperren — cms_set_user_status() verweigert das Sperren des
-// letzten Admin-Accounts selbst (Spec 6.5), hier keine doppelte Prüfung nötig.
+// letzten Admin-Accounts selbst, hier keine doppelte Prüfung nötig.
 function handle_toggle_user_status(): HandlerResult {
     $error = guard('users');
     if ($error !== null) {
@@ -169,7 +169,7 @@ function handle_toggle_user_status(): HandlerResult {
 }
 
 // Löschen — cms_delete_user() verweigert das Löschen des letzten
-// Admin-Accounts selbst (Spec 6.5).
+// Admin-Accounts selbst.
 function handle_delete_user(): HandlerResult {
     $error = guard('users');
     if ($error !== null) {

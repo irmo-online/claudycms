@@ -12,7 +12,7 @@ showInFooter: true
 
 > ⚠️ **Platzhalter-Vorlage — bitte ersetzen.** Dies ist kein echtes Impressum, sondern eine Vorlage zum Ausfüllen. Sie ersetzt keine rechtliche Beratung. Prüfen Sie die Angaben vor Veröffentlichung mit einem Anwalt oder einem Generator wie [e-recht24.de](https://www.e-recht24.de).
 
-## Angaben gemäß § 5 TMG
+## Angaben gemäß § 5 DDG
 
 [Name / Firma]
 [Straße Hausnummer]
@@ -27,7 +27,7 @@ E-Mail: [E-Mail-Adresse]
 
 [Falls vorhanden: Umsatzsteuer-Identifikationsnummer gemäß § 27 a Umsatzsteuergesetz]
 
-## Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV
+## Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV
 
 [Name]
 [Anschrift wie oben]

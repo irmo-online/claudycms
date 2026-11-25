@@ -1,11 +1,11 @@
-# ─── PHP-Ausführung verbieten (Tiefenstaffelung, L12) ───────────────────────
+# ─── PHP-Ausführung verbieten (Tiefenstaffelung) ───────────────────────
 # Hochgeladene Logo-/Favicon-Dateien werden vor dem Speichern validiert
 # (lib/branding.php + lib/media.php, cms_validate_image_upload() prueft den
 # echten Bildinhalt, nicht nur die Endung) — eine PHP-Datei sollte diesen
 # Ordner also nie erreichen. Diese Regel ist die zweite Verteidigungslinie,
 # falls die Validierung doch einmal umgangen wird: selbst eine als Bild
 # getarnte .php-Datei wird hier nicht mehr ausgefuehrt, nur noch als Datei
-# ausgeliefert. Identisch zu assets/images/.htaccess (Feature 3).
+# ausgeliefert. Identisch zu assets/images/.htaccess.
 <IfModule mod_php.c>
     php_flag engine off
 </IfModule>

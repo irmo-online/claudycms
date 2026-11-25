@@ -85,7 +85,7 @@ function cms_config_with_defaults(array $cfg): array {
 
 /**
  * Baut den PHP-Quelltext für config/config.php. Ausgelagert aus save_config(),
- * damit der Double-Checked-Locking-Schreibweg in install.php (Spec 6.4)
+ * damit der Double-Checked-Locking-Schreibweg in install.php
  * dasselbe Format über einen eigenen, gesperrten Dateihandle schreiben
  * kann, ohne dafür save_config() selbst aufzurufen — die würde mit einem
  * zweiten fopen()+flock() auf dieselbe Datei im selben Prozess blockieren
@@ -115,10 +115,10 @@ function save_config(array $config): bool {
 }
 
 /**
- * Double-Checked-Locking-Schreibweg für install.php (Spec 6.4), analog
+ * Double-Checked-Locking-Schreibweg für install.php, analog
  * cms_migrate_users() in lib/users.php (Zeile ~493): ein einziger gesperrter
  * Dateihandle über Prüfung UND Schreiben hinweg. install.php prüft den
- * Self-Lock (Spec 5.1) bereits ganz oben, bevor Formular/Validierung
+ * Self-Lock bereits ganz oben, bevor Formular/Validierung
  * überhaupt laufen — zwischen dieser ersten Prüfung und dem tatsächlichen
  * Schreiben hier kann aber ein paralleler zweiter Request dieselbe Lücke
  * genutzt haben. 'c+' legt die Datei notfalls leer an, ohne einen

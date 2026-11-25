@@ -121,7 +121,7 @@ define('MAX_LOGIN_ATTEMPTS',  (int)$_cms_cfg['max_login_attempts']);
 define('LOGIN_LOCKOUT_TIME',  (int)$_cms_cfg['login_lockout_time']);
 define('SITE_DOMAIN',         $_cms_cfg['site_domain']);
 
-// Einmalige Migration ins Nutzermodell (Spec 4.2): läuft bei jedem
+// Einmalige Migration ins Nutzermodell: läuft bei jedem
 // Request, ist aber idempotent (Schnellpfad in cms_migrate_users() selbst) —
 // kein separater Installations-Schritt nötig. admin_password_hash wird ab
 // hier nicht mehr für den Login gelesen, bleibt aber unangetastet in
@@ -157,7 +157,7 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 
 // ─── Passwort vergessen: Anfrage-Formular ───────────────────────────────────
 // Läuft bewusst VOR dem is_logged_in()-Gate: genau dafür ist der Flow da —
-// wer eingeloggt wäre, bräuchte ihn nicht (Spec 4).
+// wer eingeloggt wäre, bräuchte ihn nicht.
 if (($_GET['action'] ?? '') === 'forgot_password') {
     $forgot_message = isset($_POST['forgot_email']) ? handle_forgot_password_request() : null;
     admin_render_auth('forgot', 'Passwort vergessen', ['message' => $forgot_message]);
@@ -166,7 +166,7 @@ if (($_GET['action'] ?? '') === 'forgot_password') {
 
 // ─── Passwort vergessen: Reset-Formular ─────────────────────────────────────
 // Ebenfalls vor dem is_logged_in()-Gate. Token kommt bei GET aus der Mail-URL,
-// bei POST aus dem versteckten Formularfeld (Spec 5.3).
+// bei POST aus dem versteckten Formularfeld.
 if (($_GET['action'] ?? '') === 'reset_password') {
     $reset_token = is_string($_GET['token'] ?? null) ? $_GET['token'] : post_str('token');
     $token_user  = find_user_by_token($reset_token);
@@ -208,11 +208,8 @@ $action  = $_GET['action'] ?? 'list';
 $message = '';
 $error   = '';
 
-// Direktaufruf eines admin-only Tabs ohne das Recht dafür -> 403 (Spec 5.2/
-// 6.2). Deckt die reine Anzeige per GET ab; die einzelnen POST-Handler unten
-// prüfen sich zusätzlich selbst (Spec 6.2 verlangt die Prüfung pro
-// Route/Aktion, nicht nur einmal zentral über $action, das mehrere
-// POST-Handler teilen). "Mein Profil" (action=profile) ist bewusst NICHT
+// Direktaufruf eines admin-only Tabs ohne das Recht dafür -> 403. Deckt die reine Anzeige per GET ab; die einzelnen POST-Handler unten
+// prüfen sich zusätzlich selbst. "Mein Profil" (action=profile) ist bewusst NICHT
 // hier gelistet: die Route ist für jede eingeloggte Rolle legitim
 // — jeder sieht dort nur seine eigenen Daten, kein 403, sondern für alle
 // dieselben Inhalte.
@@ -250,7 +247,7 @@ if ($action === 'preview_landingpage') {
 // vorherigen.
 //
 // Die Handler selbst liegen thematisch gruppiert in lib/admin/handlers-*.php.
-// Jeder prüft Rolle und CSRF-Token über guard() selbst (Spec 6.2) — der
+// Jeder prüft Rolle und CSRF-Token über guard() selbst — der
 // GET-Gate oben deckt nur die Anzeige ab, ein POST kommt ohne passende
 // action in der URL aus.
 $post_handlers = [

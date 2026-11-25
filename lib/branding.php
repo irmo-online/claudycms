@@ -5,7 +5,7 @@
  * Eigenes Verzeichnis assets/branding/, bewusst getrennt vom Content-
  * Bilder-Pool assets/images/ (lib/media.php): ein versehentlich über die
  * normale Medienbibliothek gelöschtes Logo/Favicon wiegt anders als ein
- * gelöschtes Content-Bild (Spec-Abschnitt zum Website-Logo).
+ * gelöschtes Content-Bild.
  *
  * Nutzt dieselbe Validierung wie lib/media.php (cms_validate_image_upload(),
  * ALLOWED_IMAGE_TYPES/ALLOWED_IMAGE_EXT) — kein neuer Prüfpfad, nur ein

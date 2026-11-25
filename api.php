@@ -18,8 +18,7 @@
  * Datei stehen. Beim Schreiben nimmt die API zusätzlich echte JSON-Typen an
  * (true/false/Zahlen); cms_build_frontmatter() setzt sie korrekt um.
  *
- * Der Deploy-Hook aus PRD 4.4 (POST /deploy) ist bewusst nicht dabei: das
- * Flag hat keinen Konsumenten (PRD Abschnitt 10, Lücke 6).
+ * Einen Deploy-Hook (POST /deploy) gibt es bewusst nicht.
  */
 
 ini_set('display_errors', '0');
@@ -324,7 +323,7 @@ function api_page_payload(array $page, bool $with_body): array {
 }
 
 /**
- * Alle Seiten mit vollständigem Frontmatter, ohne Body (PRD 4.4).
+ * Alle Seiten mit vollständigem Frontmatter, ohne Body.
  *
  * Der Index castet die Werte — die Navigation braucht int/bool. Die API
  * liefert sie dagegen als Strings aus, deshalb wird die Datei für die Ausgabe

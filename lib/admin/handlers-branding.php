@@ -8,7 +8,7 @@ declare(strict_types=1);
  * Bilder-Upload (lib/media.php, cms_validate_image_upload()) — nur der
  * Speicherort ist ein anderer (lib/branding.php, BRANDING_DIR statt
  * UPLOAD_DIR, siehe dortiger Dateikopf). Logo und Favicon sind unabhängig
- * voneinander hoch- und löschbar (Spec 5.1).
+ * voneinander hoch- und löschbar.
  */
 if (!defined('CMS_ENTRY')) {
     http_response_code(403);
@@ -19,8 +19,7 @@ if (!defined('CMS_ENTRY')) {
  * Gemeinsamer Ablauf für Logo- und Favicon-Upload: Datei aus $_FILES lesen,
  * validieren, speichern und den Dateinamen in die Config schreiben.
  *
- * Keine eigene Maßprüfung fürs Favicon (Spec 5.1: kein Composer/GD-Zwang auf
- * Kunden-Hosting, nur ein Hinweistext im UI).
+ * Keine eigene Maßprüfung fürs Favicon.
  *
  * @param string $kind      'logo' oder 'favicon' — Formularfeld und Dateiname
  * @param string $cfg_key   Config-Schlüssel für den gespeicherten Dateinamen

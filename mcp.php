@@ -1,6 +1,6 @@
 <?php
 /**
- * mcp.php — MCP-Server für die KI-Anbindung (Feature-PRD Phase 1a)
+ * mcp.php — MCP-Server für die KI-Anbindung
  *
  * Inhaltspflege per natürlicher Sprache: Claude spricht als Custom Connector
  * über MCP mit diesem Endpunkt und liest bzw. schreibt content/*.md.
@@ -36,8 +36,8 @@
  *
  * Schreibzugriffe an Seiten (create/update/delete):
  *   - zählen gegen ein Tageslimit (MCP_WRITE_LIMIT, Feature-PRD 6.6)
- *   - sichern die Vorversion nach content/.history/ (Feature-PRD 6.3)
- *   - setzen lastEditedBy: ai + lastEditedAt (Feature-PRD 5.2)
+ *   - sichern die Vorversion nach content/.history/
+ *   - setzen lastEditedBy: ai + lastEditedAt
  *   - speichern als Entwurf, solange ai_publish_immediately nicht true ist
  *
  * Die Bild-Tools nutzen lib/media.php und denselben Zähler wie
@@ -151,7 +151,7 @@ function mcp_config(): array {
 }
 
 /**
- * Sollen KI-Änderungen sofort live gehen? (Feature-PRD 6.2)
+ * Sollen KI-Änderungen sofort live gehen?
  * Default false: alles, was die KI schreibt, ist zunächst ein Entwurf.
  */
 function mcp_publish_immediately(): bool {
@@ -367,7 +367,7 @@ function mcp_categories_from_meta(mixed $value): string {
 // nur dort gebraucht. Bei Reaktivierung aus der Git-Historie wiederherstellen
 // (Commit 5fef877).
 
-// ─── Schreib-Rate-Limit (Feature-PRD 6.6) ───────────────────────────────────
+// ─── Schreib-Rate-Limit ───────────────────────────────────
 //
 // 50 Schreib-Tool-Calls pro Zeitfenster und Installation, Lesen unbegrenzt.
 // Der Zähler hängt bewusst nicht an der IP: Claude ruft aus wechselnden
@@ -425,7 +425,7 @@ const MCP_TOOL_PERMISSIONS = [
 
 // ─── Tool-Definitionen ──────────────────────────────────────────────────────
 //
-// Beschreibungen bewusst ausführlich und auf Deutsch (Feature-PRD 5): Claude
+// Beschreibungen bewusst ausführlich und auf Deutsch: Claude
 // soll ohne kundenseitiges Prompt-Engineering das richtige Tool wählen.
 
 /** Schema-Baustein für frei wählbare Frontmatter-Felder. */
@@ -1044,15 +1044,14 @@ function mcp_tool_delete_page(array $args): never {
 
 // ─── Landingpage-Tools ───────────────────────────────────────────────────────
 //
-// Eigenes Tool-Paar statt Erweiterung von create_page/update_page (Spec
-// Entscheidung 2) — eigene Tool-Beschreibung, kein Risiko, dass eine normale
+// Eigenes Tool-Paar statt Erweiterung von create_page/update_page — eigene Tool-Beschreibung, kein Risiko, dass eine normale
 // Markdown-Seite versehentlich HTML-interpretiert wird. Nutzen intern aber
 // dieselben cms_create_page()/cms_update_page() aus lib/content.php weiter:
 // contentType ist ein Frontmatter-Feld wie jedes andere, keine eigene
-// Speicherlogik nötig (Spec 4.1). Body-Validierung über
+// Speicherlogik nötig. Body-Validierung über
 // cms_validate_landingpage_html() (lib/content.php, Spec 6.3), CSS-Prüfung
 // bei pageStyle über cms_custom_css_safe() (lib/styles.php) — dieselbe
-// Blockliste wie update_custom_css (Spec 6.4).
+// Blockliste wie update_custom_css.
 
 /**
  * Prüft ein pageStyle-Feld in $meta, falls gesetzt und nicht leer. Läuft
@@ -1076,7 +1075,7 @@ function mcp_tool_create_landingpage(array $args): never {
     $page_style = mcp_optional_string($args, 'pageStyle');
     $meta       = mcp_meta_from_args($args);
 
-    // contentType wird immer automatisch gesetzt (Spec 4.1), auch wenn im
+    // contentType wird immer automatisch gesetzt, auch wenn im
     // freien "meta"-Objekt versehentlich ein anderer Wert mitkäme.
     $meta['contentType'] = ContentType::Html->value;
     if ($page_style !== null) {
@@ -1407,15 +1406,14 @@ function mcp_tool_create_redirect(array $args): never {
     $to   = mcp_require_string($args, 'to');
 
     // Rate-Limit vor der Validierung — analog update_styles/update_custom_css
-    // (Spec 5.2/5.4): Schreib-Tools zählen einheitlich zuerst.
+    //: Schreib-Tools zählen einheitlich zuerst.
     mcp_guard_write_limit();
 
     $existing_slugs = array_map(
         static fn(array $p): string => $p['slug'],
         cms_list_pages(true)
     );
-    // 'ai' als created_by, analog 'ai' bei lastEditedBy für Seiten (Feature-PRD
-    // 5.2) — kein Zugriff auf $mcp_user nötig, gleiche Konvention wie dort.
+    // 'ai' als created_by, analog 'ai' bei lastEditedBy für Seiten — kein Zugriff auf $mcp_user nötig, gleiche Konvention wie dort.
     $result = cms_create_redirect($from, $to, $existing_slugs, 'ai');
     if ($result['ok'] === false) {
         mcp_tool_error((string) $result['error']);
@@ -1463,7 +1461,7 @@ if ($limit['count'] > MCP_RATE_LIMIT) {
     rpc_error(null, -32000, 'Zu viele Anfragen. Bitte später erneut versuchen.', 429);
 }
 
-// Migration hier zusätzlich zu admin.php (Spec 4.2): mcp.php kann
+// Migration hier zusätzlich zu admin.php: mcp.php kann
 // schon vor dem ersten Admin-Login aufgerufen werden (z.B. gleich nach dem
 // Deploy dieses Features), und der Token-Lookup unten braucht users.json
 // bereits vorhanden. Idempotent, gleicher Schnellpfad wie in admin.php.
@@ -1530,7 +1528,7 @@ switch ($method) {
             ? $params['protocolVersion']
             : MCP_PROTOCOL_FALLBACK;
 
-        // Instructions rollenabhängig gekürzt (Spec 5.5): ein
+        // Instructions rollenabhängig gekürzt: ein
         // Content Creator sieht die Styles-Tools weder in tools/list noch
         // darf er sie aufrufen — eine Anleitung, die sie trotzdem erwähnt,
         // würde Claude auf Tools verweisen, die für diesen Nutzer gar nicht
@@ -1581,8 +1579,7 @@ switch ($method) {
         $args = is_array($params['arguments'] ?? null) ? $params['arguments'] : [];
 
         // Rechteprüfung bei jedem einzelnen Aufruf, nicht nur über die pro
-        // Rolle gefilterte tools/list-Antwort oben (Spec 5.5: "kein
-        // Sicherheitsmechanismus, nur UX"). Ein unbekanntes Tool fällt hier
+        // Rolle gefilterte tools/list-Antwort oben. Ein unbekanntes Tool fällt hier
         // ebenfalls durch (kein Eintrag in MCP_TOOL_PERMISSIONS) und landet
         // im selben Protokollfehler wie unten der Fallback nach dem Switch.
         $permission = MCP_TOOL_PERMISSIONS[$tool] ?? null;
