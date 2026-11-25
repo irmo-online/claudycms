@@ -1,0 +1,19 @@
+# Konfiguration mit Geheimnissen (Passwort-Hash, SMTP-Passwort), nie einchecken
+config/config.php
+
+# Nutzerverwaltung: enthält Passwort-Hashes und MCP-Token-Hashes
+config/users.json
+
+# 301-Redirect-Tabelle (Laufzeitdaten)
+config/redirects.json
+
+# Laufzeitdaten: Zähler für Login- und Kontaktformular-Rate-Limits
+config/ratelimit/
+
+# Lokale Claude-Code-Dateien
+CLAUDE.md
+.claude/
+
+# OS / Editor
+.DS_Store
+Thumbs.db

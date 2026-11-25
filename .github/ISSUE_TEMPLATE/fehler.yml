@@ -1,0 +1,30 @@
+name: Fehler melden
+description: Etwas funktioniert nicht wie erwartet
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Sicherheitslücken bitte nicht hier melden, sondern wie in SECURITY.md beschrieben.
+  - type: textarea
+    id: was
+    attributes:
+      label: Was ist passiert?
+      description: Erwartetes und tatsächliches Verhalten, gern mit Fehlermeldung.
+    validations:
+      required: true
+  - type: textarea
+    id: schritte
+    attributes:
+      label: Schritte zum Nachstellen
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: ClaudyCMS-Version
+      placeholder: z. B. 1.0.0
+  - type: input
+    id: umgebung
+    attributes:
+      label: PHP-Version und Webserver
+      placeholder: z. B. PHP 8.2, Apache 2.4

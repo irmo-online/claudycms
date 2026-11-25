@@ -1,0 +1,264 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+    --bg: #f8f9fa; --white: #ffffff; --text: #1a1a1a; --text-light: #666;
+    --border: #dee2e6; --primary: #1a1a1a; --primary-hover: #333;
+    --danger: #dc3545; --success: #198754; --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --mono: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+}
+/* Reservierter Platz für die Scrollleiste, immer — nicht nur wenn eine Seite
+   tatsächlich lang genug zum Scrollen ist. Ohne das
+   ändert sich die verfügbare Breite je nachdem, ob ein Scrollbalken da ist
+   oder nicht, und alles mit justify-content:space-between (u.a. die
+   Topbar mit dem Profil-Icon) rutscht beim Seitenwechsel sichtbar hin und
+   her. scrollbar-gutter:stable reserviert den Rand auch ohne Scrollbalken
+   (macOS/Overlay-Scrollbars zeigen dort normalerweise gar nichts) — der
+   Fallback für ältere Browser ohne die Eigenschaft erzwingt stattdessen
+   einen immer sichtbaren Scrollbalken, damit der Effekt wenigstens
+   näherungsweise erhalten bleibt. */
+html { scrollbar-gutter: stable; }
+@supports not (scrollbar-gutter: stable) {
+    html { overflow-y: scroll; }
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); line-height: 1.6; }
+
+.login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-form { background: var(--white); padding: 2.5rem; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); width: 100%; max-width: 380px; }
+.login-form h1 { font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 700; }
+.login-form input { width: 100%; padding: 0.7rem 1rem; border: 1px solid var(--border); border-radius: 4px; font-size: 1rem; margin-bottom: 1rem; }
+.login-form button { width: 100%; padding: 0.7rem; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; font-weight: 600; }
+.login-form button:hover { background: var(--primary-hover); }
+.login-form-footer { margin-top: 1rem; text-align: center; font-size: 0.85rem; }
+.login-form-footer a { color: var(--text-light); }
+
+/* Sidebar-Layout: Logo oben in der Sidebar, Hauptnav darunter über
+   die volle Höhe, rechts davon eine eigene Topbar NUR über dem Content (nicht
+   über die Sidebar) mit „Website ansehen"/„Abmelden" links und dem
+   Profil-Icon rechts — an eine Bild-Vorlage angeglichen (dort Avatar oben
+   rechts), auch wenn die Topbar selbst nur über dem Content läuft, nicht
+   über die volle Breite. */
+.admin-shell { display: flex; min-height: 100vh; align-items: stretch; }
+
+.admin-sidebar { width: 220px; flex-shrink: 0; background: var(--primary); color: #fff; display: flex; flex-direction: column; }
+.admin-sidebar-logo { display: flex; align-items: center; gap: 0.6rem; padding: 1.1rem 1.25rem; font-size: 0.95rem; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.12); white-space: nowrap; overflow: hidden; }
+.admin-sidebar-logo img { max-height: 28px; max-width: 140px; object-fit: contain; display: block; }
+.admin-nav { flex: 1; padding: 0.75rem 0; display: flex; flex-direction: column; }
+.admin-nav a { display: flex; align-items: center; gap: 0.65rem; padding: 0.6rem 1.25rem; color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.85rem; border-left: 3px solid transparent; }
+.admin-nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
+.admin-nav a:hover { color: #fff; background: rgba(255,255,255,0.06); }
+.admin-nav a.active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 600; border-left-color: #fff; }
+
+.admin-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.admin-topbar { height: 56px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; background: var(--white); border-bottom: 1px solid var(--border); }
+.admin-topbar-profile { display: flex; align-items: center; gap: 0.5rem; color: var(--text); text-decoration: none; font-size: 0.85rem; font-weight: 600; }
+.admin-topbar-profile svg { width: 18px; height: 18px; }
+.admin-topbar-links { display: flex; gap: 1.25rem; align-items: center; }
+.admin-topbar-links a { color: var(--text-light); text-decoration: none; font-size: 0.85rem; }
+.admin-topbar-links a:hover { color: var(--text); }
+/* width: 100% ist hier kein Kosmetik-Zusatz: .container ist ein Flex-Kind von
+   .admin-main (display:flex; flex-direction:column). Auto-Ränder auf der
+   Querachse (hier: links/rechts) heben laut Flexbox-Spec das Stretch-
+   Verhalten auf — ohne width:100% würde sich die Box an ihrem eigenen Inhalt
+   ausrichten ("shrink-to-fit") statt an max-width, und je nach Seiteninhalt
+   unterschiedlich breit ausfallen (beobachtet: 555px bei "Alle Seiten" vs.
+   1052px bei "KI-Anbindung", trotz identischer Klasse). Mit width:100% bleibt
+   max-width:1100px die einzige wirksame Breitenbegrenzung, margin:auto
+   zentriert wie gewollt. */
+.container { width: 100%; max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+
+/* Reiter innerhalb einer Seite (aktuell nur "Website & SEO"), angelehnt an
+   .preview-toggle weiter unten — hier aber echte Links auf eigene
+   URLs (?action=site&tab=…), kein JS-Umschalten, weil jeder Reiter
+   serverseitig gerendert wird. */
+.page-tabs { display: flex; gap: 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
+.page-tabs a { padding: 0.6rem 0.1rem; font-size: 0.9rem; font-weight: 600; color: var(--text-light); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.page-tabs a:hover { color: var(--text); }
+.page-tabs a.active { color: var(--text); border-bottom-color: var(--primary); }
+
+.msg { padding: 0.75rem 1rem; border-radius: 4px; margin-bottom: 1.5rem; font-size: 0.9rem; }
+.msg.success { background: #d1e7dd; color: #0f5132; }
+.msg.error { background: #f8d7da; color: #842029; }
+
+.file-list { background: var(--white); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); overflow: hidden; }
+.file-list-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
+.file-list-header h2 { font-size: 1rem; font-weight: 600; }
+.file-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1.25rem; border-bottom: 1px solid #f0f0f0; transition: background 0.1s; }
+.file-item:last-child { border-bottom: none; }
+.file-item:hover { background: #f8f9fa; }
+.file-item-name { font-size: 0.9rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
+.file-item-name .folder { color: var(--text-light); font-size: 0.8rem; }
+.file-item-meta { font-size: 0.8rem; color: var(--text-light); }
+.file-item a { text-decoration: none; color: var(--primary); font-weight: 500; }
+.file-item a:hover { text-decoration: underline; }
+.file-item-actions { display: flex; align-items: center; gap: 0.75rem; }
+
+/* Tab "Alle Seiten": Tabelle mit Sortier-Links in den Spaltenköpfen */
+.file-list-tools { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; justify-content: flex-end; }
+.page-filter { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: var(--text-light); }
+.page-filter select { padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem; font-family: var(--font); }
+.page-table { width: 100%; border-collapse: collapse; }
+.page-table th { text-align: left; padding: 0.6rem 1.25rem; font-size: 0.75rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.page-table th a { color: inherit; text-decoration: none; }
+.page-table th a:hover, .page-table th a.is-active { color: var(--text); }
+.page-table td { padding: 0.75rem 1.25rem; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; vertical-align: middle; }
+.page-table tbody tr:last-child td { border-bottom: none; }
+.page-table tbody tr:hover { background: #f8f9fa; }
+.page-table td a { text-decoration: none; color: var(--primary); font-weight: 500; }
+.page-table td a:hover { text-decoration: underline; }
+.page-table td a.link-muted { color: var(--text-light); }
+.page-table .file-item-name { flex-wrap: wrap; }
+.page-table-date { white-space: nowrap; color: var(--text-light); }
+.page-table-categories { color: var(--text-light); }
+.page-table .page-table-actions { text-align: right; white-space: nowrap; }
+
+/* Entwurf und KI-Kennzeichnung im Seiten-Listing */
+.badge { display: inline-block; padding: 0.1rem 0.45rem; border-radius: 3px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; }
+.badge-draft { background: #fff3cd; color: #664d03; }
+.badge-ai { background: #cfe2ff; color: #084298; }
+.badge-landingpage { background: #e2d9f3; color: #4b2e83; }
+
+.btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 4px; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: opacity 0.15s; }
+.btn:hover { opacity: 0.85; }
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-sm { padding: 0.35rem 0.7rem; font-size: 0.8rem; }
+
+.editor-panel-full + .editor-panel-full { margin-top: 1.5rem; }
+.editor-panel { background: var(--white); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 1.5rem; }
+.editor-panel h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-light); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.form-group input, .form-group select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; font-family: var(--font); }
+.form-group input:focus, .form-group select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(26,26,26,0.1); }
+.form-group label input[type=checkbox] { width: auto; margin-right: 0.4rem; vertical-align: middle; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+textarea.editor-textarea { width: 100%; min-height: 400px; padding: 1rem; border: 1px solid var(--border); border-radius: 4px; font-family: var(--mono); font-size: 0.9rem; line-height: 1.6; resize: vertical; tab-size: 4; }
+/* Aktionsleiste klebt am unteren Rand des Viewports, damit Speichern auch bei
+   langen Seiten immer erreichbar ist. Der negative Seitenrand und das
+   Padding lassen den Hintergrund bis an die Containerkante laufen, ohne den
+   Inhalt zu verschieben. */
+.editor-actions { display: flex; gap: 0.75rem; margin: 1.25rem -1.5rem 0; padding: 0.75rem 1.5rem; align-items: center; position: sticky; bottom: 0; z-index: 10; background: var(--white); border-top: 1px solid var(--border); box-shadow: 0 -2px 8px rgba(0,0,0,0.06); }
+.editor-actions .spacer { flex: 1; }
+
+/* Preview panel */
+.preview-toggle { display: flex; gap: 0; margin-bottom: 1rem; }
+.preview-toggle button { padding: 0.4rem 1rem; font-size: 0.8rem; font-weight: 600; border: 1px solid var(--border); background: var(--bg); cursor: pointer; color: var(--text-light); }
+.preview-toggle button:first-child { border-radius: 4px 0 0 4px; }
+.preview-toggle button:last-child { border-radius: 0 4px 4px 0; }
+.preview-toggle button.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+.markdown-preview { min-height: 400px; padding: 1rem; border: 1px solid var(--border); border-radius: 4px; display: none; overflow-y: auto; max-height: 600px; line-height: 1.7; }
+.markdown-preview h1, .markdown-preview h2, .markdown-preview h3 { margin: 1rem 0 0.5rem; font-weight: 700; }
+.markdown-preview h1 { font-size: 1.5rem; }
+.markdown-preview h2 { font-size: 1.25rem; }
+.markdown-preview h3 { font-size: 1.1rem; }
+.markdown-preview p { margin-bottom: 0.75rem; }
+.markdown-preview ul, .markdown-preview ol { margin: 0 0 0.75rem 1.5rem; }
+.markdown-preview blockquote { border-left: 3px solid var(--border); padding-left: 1rem; color: var(--text-light); margin: 0.75rem 0; }
+.markdown-preview code { font-family: var(--mono); font-size: 0.9em; background: #f5f5f5; padding: 0.15em 0.4em; border-radius: 3px; }
+.markdown-preview pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; margin: 0.75rem 0; }
+.markdown-preview pre code { background: none; padding: 0; }
+.markdown-preview a { color: var(--primary); }
+.markdown-preview img { max-width: 100%; height: auto; border-radius: 4px; }
+.markdown-preview hr { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
+
+/* Image upload */
+.image-section { margin-top: 1.5rem; }
+.image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+.image-thumb { position: relative; border-radius: 4px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 1; cursor: pointer; transition: box-shadow 0.15s; }
+.image-thumb:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+.image-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.image-thumb .image-name { position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.7); color: #fff; font-size: 0.7rem; padding: 0.25rem 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.image-thumb .image-delete { position: absolute; top: 4px; right: 4px; background: var(--danger); color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7rem; cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 1; }
+.image-thumb:hover .image-delete { display: flex; }
+
+.upload-form { display: flex; gap: 0.75rem; align-items: end; margin-top: 1rem; }
+.upload-form input[type=file] { font-size: 0.85rem; }
+
+.folder-form { display: flex; gap: 0.75rem; align-items: end; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+.folder-form input { padding: 0.5rem 0.75rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+
+/* Settings page */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.settings-section { background: var(--white); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 1.5rem; }
+.settings-section h2 { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); display: flex; align-items: baseline; gap: 0.5rem; }
+.settings-section h2 .section-note { font-size: 0.75rem; font-weight: 400; color: var(--text-light); }
+.settings-hint { font-size: 0.75rem; color: var(--text-light); margin-top: 0.3rem; line-height: 1.4; }
+.settings-actions { margin-top: 1.5rem; }
+.settings-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+/* Hilfsklassen: ersetzen die früheren style=""-Attribute im Admin-Markup.
+   Die CSP des Admin-Bereichs erlaubt keine Inline-Styles mehr. Die Regeln
+   stehen bewusst nach den Komponenten oben, damit sie bei gleicher
+   Spezifität gewinnen (.mt-small gegen .upload-form, .flush gegen
+   .form-group). Wo eine Komponente spezifischer ist, ist es die Hilfsklasse
+   auch (.file-item a, .form-group select/input). */
+.mt-section { margin-top: 1.5rem; }
+.mt-small { margin-top: 0.75rem; }
+.flush { margin: 0; }
+.inline-form { display: inline; }
+.is-hidden { display: none; }
+.full-width { width: 100%; }
+.text-muted { color: var(--text-light); }
+.text-muted-small { color: var(--text-light); font-size: 0.8rem; }
+.inline-note { font-size: 0.8rem; color: var(--text-light); margin-left: 0.5rem; }
+.hint-below { font-size: 0.8rem; color: var(--text-light); margin-top: 1rem; }
+.empty-note { color: var(--text-light); margin-top: 1rem; }
+.file-item a.link-muted { color: var(--text-light); }
+.file-list-flat { box-shadow: none; border: 1px solid var(--border); }
+.settings-hint-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.75rem; }
+.steps-list { padding-left: 1.25rem; font-size: 0.9rem; line-height: 1.8; }
+.form-group input.input-mono { font-family: monospace; }
+
+/* Editor */
+.folder-picker { display: flex; gap: 0.5rem; }
+.form-group select.select-auto { width: auto; }
+.checkbox-row { display: flex; gap: 1.25rem; }
+.checkbox-row label { font-weight: 400; }
+.meta-subheading { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.03em; }
+.editor-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border); }
+.editor-panel-header h2 { margin: 0; padding: 0; border: 0; }
+.settings-accordion { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.75rem; overflow: hidden; }
+.settings-accordion > summary { padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; background: #3b707d; color: #fff; }
+.settings-accordion-body { padding: 1rem 1rem 0; background: #eefcff; }
+.settings-accordion-body .form-group input:not([type=checkbox]):not([type=radio]), .settings-accordion-body .form-group select { border-color: #3b707d; }
+.landingpage-preview { width: 100%; height: 400px; }
+
+/* Logo & Favicon */
+.branding-subheading { font-size: 0.85rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 0.75rem; }
+.branding-preview-logo { max-height: 80px; max-width: 100%; display: block; margin-bottom: 0.5rem; }
+.branding-preview-favicon { max-height: 48px; max-width: 48px; display: block; margin-bottom: 0.5rem; }
+
+@media (max-width: 768px) {
+    .form-row { grid-template-columns: 1fr; }
+    /* Sidebar wird auf schmalen Screens zur oberen Leiste, Nav-Punkte
+       umbrechen nebeneinander statt untereinander. */
+    .admin-shell { flex-direction: column; }
+    .admin-sidebar { width: 100%; flex-direction: row; align-items: center; flex-wrap: wrap; }
+    .admin-sidebar-logo { border-bottom: none; padding: 0.75rem 1rem; }
+    .admin-nav { flex-direction: row; flex-wrap: wrap; padding: 0.4rem; }
+    .admin-nav a { padding: 0.4rem 0.6rem; border-left: none; border-radius: 4px; }
+    .admin-nav a.active { border-left: none; }
+    .admin-topbar { flex-wrap: wrap; height: auto; padding: 0.75rem 1rem; gap: 0.5rem; }
+    .container { padding: 0 1rem; }
+    .editor-actions { margin-left: -1rem; margin-right: -1rem; padding: 0.6rem 1rem; gap: 0.5rem; flex-wrap: wrap; }
+    .image-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
+    .settings-grid { grid-template-columns: 1fr; }
+    .page-tabs { gap: 1rem; flex-wrap: wrap; }
+    /* Seitenliste: jede Zeile wird zum Block, die Spaltenköpfe ohne
+       Sortier-Link entfallen, die übrigen stehen als Linkzeile darüber. */
+    .file-list-header { flex-wrap: wrap; gap: 0.75rem; }
+    .page-table, .page-table tbody, .page-table tr, .page-table td { display: block; }
+    .page-table thead { display: block; border-bottom: 1px solid var(--border); }
+    .page-table thead tr { display: flex; gap: 1.25rem; padding: 0.6rem 1rem; }
+    .page-table th { display: none; padding: 0; border-bottom: none; }
+    .page-table th.page-table-sortable { display: block; }
+    .page-table tbody tr { padding: 0.75rem 1rem; border-bottom: 1px solid #f0f0f0; }
+    .page-table tbody tr:last-child { border-bottom: none; }
+    .page-table td { padding: 0.15rem 0; border-bottom: none; }
+    .page-table td[data-label]::before { content: attr(data-label) ": "; }
+    .page-table td.page-table-categories:empty { display: none; }
+    .page-table .page-table-actions { text-align: left; white-space: normal; padding-top: 0.5rem; }
+}

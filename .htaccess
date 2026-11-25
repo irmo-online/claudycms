@@ -1,0 +1,101 @@
+# ─── Verzeichnislisten abschalten ────────────────────────────────────────────
+# Sonst haengt es allein an der Server-Voreinstellung, ob /content/ und
+# /assets/images/ ihren Inhalt auflisten.
+# Hinweis: Sollte der Hoster "Options" in .htaccess verbieten (HTTP 500 auf
+# allen Seiten), ist diese eine Zeile die Ursache.
+Options -Indexes
+
+# ─── Schutz sensibler Dateien ────────────────────────────────────────────────
+# Punkt-Dateien: v.a. .ftp-deploy-sync-state.json, das ein vollstaendiges
+# Manifest aller Dateien auf dem Server enthaelt und oeffentlich lesbar war.
+# Greift nur auf Dateinamen, nicht auf Verzeichnisse — /.well-known/... bleibt
+# fuer die Zertifikatsausstellung erreichbar. Dateien *in* Punkt-Ordnern
+# (content/.history/…) deckt die Rewrite-Regel weiter unten ab.
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Deploy-Hook-Flags (PRD 5.1) gehoeren ebenfalls nicht ins Web.
+<FilesMatch "\.flag$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ─── Security-Header ─────────────────────────────────────────────────────────
+# index.php und admin.php setzen ihre Header selbst (inkl. CSP und
+# X-Frame-Options) — hier stehen nur die Werte, die auch fuer statische
+# Antworten gelten sollen: Stylesheet, Bilder, Fonts und die rohen
+# /content/*.md, die laut PRD oeffentlich bleiben.
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+</IfModule>
+
+# ─── URL Rewriting (Frontend Router) ─────────────────────────────────────────
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # HTTPS erzwingen. Muss vor allen anderen Regeln stehen, sonst beendet der
+    # Pass-Through fuer existierende Dateien die Verarbeitung vorher — CSS,
+    # Bilder und /content/*.md waeren weiter ueber http erreichbar.
+    # Lokale Instanzen bleiben ausgenommen, damit die Entwicklung ueber http laeuft.
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # Authorization-Header an PHP durchreichen. Unter CGI/FastCGI schluckt
+    # Apache ihn sonst, und api.php saehe nie den Bearer-Token. Muss vor den
+    # [L]-Regeln stehen, sonst wird die Zeile fuer /api.php nie erreicht.
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule ^ - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Alles in Punkt-Ordnern sperren (z.B. content/.history/2026-01-01.md).
+    # <FilesMatch "^\."> oben prueft nur den Dateinamen und laesst genau diese
+    # Faelle durch. <DirectoryMatch> ist in .htaccess nicht erlaubt, deshalb
+    # als Rewrite-Regel. /.well-known/ bleibt bewusst erreichbar.
+    RewriteCond %{REQUEST_URI} !^/\.well-known/
+    RewriteRule (^|/)\. - [F]
+
+    # Rohe Markdown-Dateien laufen ueber index.php statt direkt vom Server.
+    # Grund: Entwuerfe tragen "draft: true" *in* der Datei, und das sieht Apache
+    # nicht — /content/entwurf.md waere sonst oeffentlich lesbar, obwohl die
+    # Seite selbst 404 liefert. index.php prueft das Flag und liefert das rohe
+    # Markdown nur fuer veroeffentlichte Seiten aus (PRD: Markdown bleibt
+    # oeffentlich). Muss VOR dem Pass-Through fuer existierende Dateien stehen,
+    # sonst liefert der Server die Datei vorher aus. Bewusst ohne QSA: ein
+    # angehaengtes ?raw=... wuerde den Wert aus der Regel ueberschreiben.
+    RewriteRule ^content/(.+\.md)$ index.php?raw=$1 [L]
+
+    # Pass requests for existing files and directories through unchanged
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # MCP-Endpunkt: der Connector-Token steht im Pfad (mcp.php/{token}).
+    # Ohne diese Regel greift der Catch-All unten, weil mcp.php/{token} als
+    # Dateipfad nicht existiert — die Anfrage landete dann auf index.php.
+    RewriteRule ^mcp\.php(/|$) - [L]
+
+    # REST-API: Ressource und Slug stehen im Pfad (api.php/pages/{slug}).
+    # Gleiche Begruendung wie bei mcp.php — sonst frisst der Catch-All die URL.
+    RewriteRule ^api\.php(/|$) - [L]
+
+    # Rewrite all other clean URLs to index.php with the slug parameter
+    RewriteRule ^(.+)$ index.php?slug=$1 [QSA,L]
+</IfModule>
