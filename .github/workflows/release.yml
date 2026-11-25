@@ -1,0 +1,79 @@
+name: Release
+
+# Startet, sobald ein Tag der Form v1.2.3 gepusht wird. Baut das Installations-ZIP
+# und hängt es an ein GitHub-Release.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag und VERSION müssen übereinstimmen
+        run: |
+          if [ "v$(tr -d '[:space:]' < VERSION)" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME passt nicht zur Datei VERSION ($(cat VERSION))"
+            exit 1
+          fi
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, fileinfo, gd
+
+      - name: Tests
+        run: |
+          for t in tests/*.php; do
+            echo "::group::$t"
+            php "$t" || exit 1
+            echo "::endgroup::"
+          done
+
+      - name: ZIP bauen
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          git archive --format=zip --prefix=claudycms/ -o "claudycms-${VERSION}.zip" HEAD \
+            ':!tests' ':!.github' ':!CONTRIBUTING.md' ':!SECURITY.md' ':!.gitignore'
+          unzip -l "claudycms-${VERSION}.zip" | tail -1
+
+      - name: Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          gh release create "$GITHUB_REF_NAME" "claudycms-${VERSION}.zip" \
+            --title "ClaudyCMS ${VERSION}" --generate-notes
+
+      # Feste Download-Adresse für die Website: immer die neueste Version unter
+      # demselben Dateinamen. Läuft nur, wenn die drei Secrets angelegt sind
+      # (eigener FTP-Zugang, der nur auf das Verzeichnis der Subdomain zeigt).
+      - name: ZIP auf download.claudycms.eu ablegen
+        env:
+          DL_FTP_SERVER: ${{ secrets.DOWNLOAD_FTP_SERVER }}
+          DL_FTP_USER: ${{ secrets.DOWNLOAD_FTP_USERNAME }}
+          DL_FTP_PASSWORD: ${{ secrets.DOWNLOAD_FTP_PASSWORD }}
+        run: |
+          if [ -z "$DL_FTP_SERVER" ]; then
+            echo "::notice::Keine DOWNLOAD_FTP_*-Secrets gesetzt, Upload übersprungen."
+            exit 0
+          fi
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          cp "claudycms-${VERSION}.zip" claudycms.zip
+          curl --fail --silent --show-error --ssl-reqd \
+            --user "${DL_FTP_USER}:${DL_FTP_PASSWORD}" \
+            -T claudycms.zip "ftp://${DL_FTP_SERVER}/claudycms.zip"
+          # Gegenprobe über die öffentliche Adresse
+          sleep 3
+          remote="$(curl --fail --silent --location https://download.claudycms.eu/claudycms.zip | wc -c | tr -d ' ')"
+          local_size="$(wc -c < claudycms.zip | tr -d ' ')"
+          if [ "$remote" != "$local_size" ]; then
+            echo "::error::Download-ZIP stimmt nicht (online $remote Byte, lokal $local_size Byte)"
+            exit 1
+          fi
+          echo "download.claudycms.eu/claudycms.zip ist aktuell ($local_size Byte)"
